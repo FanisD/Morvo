@@ -83,7 +83,14 @@ class DiscoveryActivity : AppCompatActivity() {
 
         val slider = findViewById<Slider>(R.id.rangeSlider)
         val tvRange = findViewById<TextView>(R.id.tvRangeLabel)
-        slider.addOnChangeListener { _, value, _ -> tvRange.text = "Search Range: ${value.toInt()}m" }
+
+        // Map slider positions (0, 1, 2) to exact distances (50, 100, 200)
+        val rangeOptions = intArrayOf(50, 100, 200)
+
+        slider.addOnChangeListener { _, value, _ ->
+            val selectedMeters = rangeOptions[value.toInt()]
+            tvRange.text = "Search Range: ${selectedMeters}m"
+        }
 
         findViewById<SwitchMaterial>(R.id.switchAmHere).setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) checkLocationPermission() else stopLiveStatus()
@@ -194,7 +201,8 @@ class DiscoveryActivity : AppCompatActivity() {
     private fun startLiveStatus() {
         val uid = auth.currentUser?.uid ?: return
         val contextText = findViewById<EditText>(R.id.etContext).text.toString().trim()
-        val rangeMeters = findViewById<Slider>(R.id.rangeSlider).value.toInt()
+        val rangeIndex = findViewById<Slider>(R.id.rangeSlider).value.toInt()
+        val rangeMeters = intArrayOf(50, 100, 200)[rangeIndex]
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
 
