@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide
 class NearbyAdapter(
     private var users: List<User>,
     private var myHobbies: List<String> = emptyList(),
+    private val onProfileClick: (User) -> Unit,
     private val onIntentClick: (User) -> Unit
 ) : RecyclerView.Adapter<NearbyAdapter.ViewHolder>() {
 
@@ -85,6 +86,12 @@ class NearbyAdapter(
         }
 
         holder.btnTap.setOnClickListener { onIntentClick(user) }
+
+        // 1. Click listener for the specific "Tap" / "Match" button
+        holder.btnTap.setOnClickListener { onIntentClick(user) }
+
+        // 2. NEW: Click listener for the entire card to show the profile details!
+        holder.itemView.setOnClickListener { onProfileClick(user) }
     }
 
     override fun getItemCount() = users.size

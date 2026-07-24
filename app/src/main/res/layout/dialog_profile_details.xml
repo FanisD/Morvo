@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bottom_sheet_background"
+    android:padding="24dp">
+
+    <!-- TOP ROW: IMAGE & BASIC INFO -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            app:cardCornerRadius="40dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/ivSheetProfilePic"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:background="#EFEFEF" />
+        </androidx.cardview.widget.CardView>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+            <TextView
+                android:id="@+id/tvSheetNameAge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Name, Age"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvSheetCity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="City"
+                android:textColor="@color/text_secondary"
+                android:textSize="16sp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EAEAEA"
+        android:layout_marginVertical="16dp" />
+
+    <!-- EXTRA DETAILS SECTION -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="About"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tvSheetOccupation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="💼 Occupation: Student"
+        android:textColor="@color/text_secondary"
+        android:textSize="15sp"
+        android:layout_marginBottom="6dp" />
+
+    <TextView
+        android:id="@+id/tvSheetGenderInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="👤 Gender: Male | Looking for: Female"
+        android:textColor="@color/text_secondary"
+        android:textSize="15sp"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Interests"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tvSheetHobbies"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Coffee, Traveling, Gym"
+        android:textColor="@color/brand_primary"
+        android:textSize="15sp"
+        android:lineSpacingExtra="4dp"
+        android:layout_marginBottom="16dp" />
+
+</LinearLayout>

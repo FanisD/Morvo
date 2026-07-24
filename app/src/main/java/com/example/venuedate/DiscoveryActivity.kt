@@ -76,7 +76,12 @@ class DiscoveryActivity : AppCompatActivity() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         createNotificationChannel()
 
-        adapter = NearbyAdapter(emptyList(), myHobbies) { selectedUser -> sendInterest(selectedUser) }
+        adapter = NearbyAdapter(
+            users = emptyList(),
+            myHobbies = myHobbies,
+            onProfileClick = { selectedUser -> showProfileDetailsSheet(selectedUser) },
+            onIntentClick = { selectedUser -> sendInterest(selectedUser) }
+        )
         val rv = findViewById<RecyclerView>(R.id.rvNearby)
         rv.layoutManager = LinearLayoutManager(this)
         rv.adapter = adapter
@@ -505,5 +510,42 @@ class DiscoveryActivity : AppCompatActivity() {
 
     private fun fuzzLocation(coordinate: Double): Double {
         return Math.round(coordinate * 1000.0) / 1000.0
+    }
+
+    private fun showProfileDetailsSheet(user: User) {
+        val bottomSheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        bottomSheetDialog.setContentView(R.layout.dialog_profile_details)
+
+        // Bind UI Elements
+        val ivPic = bottomSheetDialog.findViewById<ImageView>(R.id.ivSheetProfilePic)
+        val tvNameAge = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetNameAge)
+        val tvCity = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetCity)
+        val tvOccupation = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetOccupation)
+        val tvGenderInfo = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetGenderInfo)
+        val tvHobbies = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetHobbies)
+
+        // Populate Data
+        tvNameAge?.text = "${user.firstName}, ${user.age}"
+        tvCity?.text = if (user.city.isNotEmpty()) user.city else "Location hidden"
+        tvOccupation?.text = "💼 ${if (user.occupation.isNotEmpty()) user.occupation else "Not specified"}"
+        tvGenderInfo?.text = "👤 ${user.gender} | Looking for: ${user.interestedIn}"
+
+        // Format hobbies list beautifully
+        tvHobbies?.text = if (user.hobbies.isNotEmpty()) {
+            user.hobbies.joinToString(separator = " • ")
+        } else {
+            "No interests added."
+        }
+
+        // Load profile picture
+        if (user.imageUrls.isNotEmpty() && ivPic != null) {
+            Glide.with(this)
+                .load(user.imageUrls[0])
+                .circleCrop()
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .into(ivPic)
+        }
+
+        bottomSheetDialog.show()
     }
 }
