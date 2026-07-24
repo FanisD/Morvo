@@ -44,17 +44,20 @@ class DiscoveryActivity : AppCompatActivity() {
     private var radarListener: ListenerRegistration? = null
     private var matchListener: ListenerRegistration? = null
     private var inboundTapListener: ListenerRegistration? = null
+    private var outboundTapListener: ListenerRegistration? = null
     private var globalChatListener: ListenerRegistration? = null
-    private val nearbyUsersList = mutableListOf<User>()
+
+    // Real-time cached lists
+    private val rawNearbyUsers = mutableListOf<User>()
+    private val matchedUids = mutableSetOf<String>()
+    private val inboundTaps = mutableSetOf<String>()
+    private val outboundTaps = mutableSetOf<String>()
 
     private val channelId = "venue_date_radar"
     private val appSessionStartTime = System.currentTimeMillis()
-
     private val notifiedCompatibleUsers = mutableSetOf<String>()
 
-    // Local cache tracking parameters for compatibility calculation matching
     private var myHobbies = listOf<String>()
-
     private var myBlockedUsers = listOf<String>()
     private var isCompatibilityModeActive = false
 
@@ -73,13 +76,11 @@ class DiscoveryActivity : AppCompatActivity() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         createNotificationChannel()
 
-        // 1. Setup RecyclerView
-        adapter = NearbyAdapter(nearbyUsersList, myHobbies) { selectedUser -> sendInterest(selectedUser) }
+        adapter = NearbyAdapter(emptyList(), myHobbies) { selectedUser -> sendInterest(selectedUser) }
         val rv = findViewById<RecyclerView>(R.id.rvNearby)
         rv.layoutManager = LinearLayoutManager(this)
         rv.adapter = adapter
 
-        // 2. Setup Radar Controls
         val slider = findViewById<Slider>(R.id.rangeSlider)
         val tvRange = findViewById<TextView>(R.id.tvRangeLabel)
         slider.addOnChangeListener { _, value, _ -> tvRange.text = "Search Range: ${value.toInt()}m" }
@@ -88,33 +89,28 @@ class DiscoveryActivity : AppCompatActivity() {
             if (isChecked) checkLocationPermission() else stopLiveStatus()
         }
 
-        // Compatibility Toggle Switch UI Binding Action
         val switchComp = findViewById<SwitchMaterial>(R.id.switchCompatibilityMode)
         switchComp.setOnCheckedChangeListener { _, isChecked ->
             isCompatibilityModeActive = isChecked
-
-            // Update Firestore instantly so other phones know you are looking
             auth.currentUser?.uid?.let { uid ->
                 db.collection("users").document(uid).update("isCompatibilityModeActive", isChecked)
             }
+            refreshRadarUI()
         }
 
-        // 3. Persistent Inbox Intent Bindings
         findViewById<ImageButton>(R.id.btnInbox).setOnClickListener {
             startActivity(Intent(this, MatchesInboxActivity::class.java))
         }
 
-        // 4. Global system tracers
+        // Start real-time environment listeners
         listenForMatches()
-        listenForInboundInterests()
+        listenForTaps()
         listenForGlobalMessages()
 
-        // Profile Menu Click Listener
         val btnProfileMenu = findViewById<View>(R.id.btnProfileMenu)
         btnProfileMenu.setOnClickListener { view ->
             val popup = PopupMenu(this, view)
             popup.menuInflater.inflate(R.menu.profile_menu, popup.menu)
-
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.action_profile -> {
@@ -129,11 +125,9 @@ class DiscoveryActivity : AppCompatActivity() {
                     }
                     R.id.action_logout -> {
                         auth.signOut()
-                        val intent = Intent(this, MainActivity::class.java).apply {
-                            // This clears the activity stack so the user can't press the "back" button to return to the radar
+                        startActivity(Intent(this, MainActivity::class.java).apply {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        }
-                        startActivity(intent)
+                        })
                         true
                     }
                     else -> false
@@ -143,13 +137,11 @@ class DiscoveryActivity : AppCompatActivity() {
         }
     }
 
-    // ADDED: Using onResume instead of onCreate so this refreshes immediately when coming back from Edit Profile!
     override fun onResume() {
         super.onResume()
         checkUserHobbiesEligibility()
     }
 
-    // Verification algorithm gate confirming eligibility for Compatibility Mode
     private fun checkUserHobbiesEligibility() {
         val myUid = auth.currentUser?.uid ?: return
         db.collection("users").document(myUid).get().addOnSuccessListener { doc ->
@@ -169,11 +161,8 @@ class DiscoveryActivity : AppCompatActivity() {
                 }
                 adapter.updateMyHobbies(myHobbies)
 
-                // Load the user's profile picture into the top-right menu button
                 if (user.imageUrls.isNotEmpty()) {
                     val ivUserProfilePic = findViewById<ImageView>(R.id.ivUserProfilePic)
-
-                    // FIXED: Tell Glide to skip the cache so it always fetches the newest photo!
                     Glide.with(this)
                         .load(user.imageUrls[0])
                         .diskCacheStrategy(DiskCacheStrategy.NONE)
@@ -181,6 +170,9 @@ class DiscoveryActivity : AppCompatActivity() {
                         .circleCrop()
                         .into(ivUserProfilePic)
                 }
+
+                // Triggers a list refresh now that blocked users are fetched
+                refreshRadarUI()
             }
         }
     }
@@ -214,7 +206,7 @@ class DiscoveryActivity : AppCompatActivity() {
                     "lastLng" to fuzzLocation(location.longitude),
                     "locationContext" to contextText,
                     "availableUntil" to System.currentTimeMillis() + (20 * 60 * 1000),
-                    "isCompatibilityModeActive" to isCompatibilityModeActive // Broadcast your mode
+                    "isCompatibilityModeActive" to isCompatibilityModeActive
                 )
                 db.collection("users").document(uid).update(updates).addOnSuccessListener {
                     listenForNearbyUsers(location.latitude, location.longitude, rangeMeters)
@@ -223,55 +215,147 @@ class DiscoveryActivity : AppCompatActivity() {
         }
     }
 
+    // LISTENER 1: Tracks raw nearby users
     private fun listenForNearbyUsers(myLat: Double, myLng: Double, rangeMeters: Int) {
         radarListener?.remove()
 
         radarListener = db.collection("users")
             .whereEqualTo("isAvailable", true)
             .addSnapshotListener { snapshots, e ->
-                if (e != null) {
-                    Log.e("RADAR", "Listen failed.", e)
-                    return@addSnapshotListener
-                }
+                if (e != null) return@addSnapshotListener
 
-                val superMatches = mutableListOf<User>()
-                val regularUsers = mutableListOf<User>()
-
+                rawNearbyUsers.clear()
                 snapshots?.forEach { doc ->
                     val user = doc.toObject(User::class.java)
-                    if (user != null && user.uid != auth.currentUser?.uid && !myBlockedUsers.contains(user.uid) && !user.blockedUsers.contains(auth.currentUser?.uid)) {
+                    if (user != null && user.uid != auth.currentUser?.uid) {
                         val dist = FloatArray(1)
                         Location.distanceBetween(myLat, myLng, user.lastLat, user.lastLng, dist)
-
                         if (dist[0] <= rangeMeters) {
-
-                            // Check if BOTH users have Compatibility Mode ON
-                            if (isCompatibilityModeActive && user.isCompatibilityModeActive) {
-                                val sharedInterestsCount = user.hobbies.intersect(myHobbies.toSet()).size
-
-                                if (sharedInterestsCount >= 7) {
-                                    // Put them in the VIP list!
-                                    superMatches.add(user)
-
-                                    // Send a notification if we haven't already alerted the user about them
-                                    if (!notifiedCompatibleUsers.contains(user.uid)) {
-                                        notifiedCompatibleUsers.add(user.uid)
-                                        triggerLocalNotification("High Compatibility! ${user.firstName} is nearby with $sharedInterestsCount shared interests!")
-                                    }
-                                    return@forEach // Skip adding to regular list
-                                }
-                            }
-
-                            // If they aren't a super match, they go to the regular list
-                            regularUsers.add(user)
+                            rawNearbyUsers.add(user)
                         }
                     }
                 }
-
-                // Combine the lists: Super Matches go exactly at the top of the feed
-                val combinedList = superMatches + regularUsers
-                adapter.updateList(combinedList)
+                refreshRadarUI()
             }
+    }
+
+    // LISTENER 2: Tracks Matches to hide them from the radar
+    private fun listenForMatches() {
+        val myUid = auth.currentUser?.uid ?: return
+        matchListener = db.collection("matches")
+            .whereArrayContains("users", myUid)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) return@addSnapshotListener
+
+                snapshots?.documentChanges?.forEach { dc ->
+                    val users = dc.document["users"] as? List<*>
+                    val stringUsers = users?.filterIsInstance<String>() ?: emptyList()
+                    val partnerUid = stringUsers.firstOrNull { it != myUid }
+
+                    if (partnerUid != null) {
+                        if (dc.type == DocumentChange.Type.ADDED) {
+                            matchedUids.add(partnerUid) // Flags them to be hidden
+                            val matchTimestamp = dc.document.getLong("timestamp") ?: 0L
+                            if (matchTimestamp > appSessionStartTime) {
+                                showMatchOverlay(partnerUid, dc.document.id)
+                            }
+                        } else if (dc.type == DocumentChange.Type.REMOVED) {
+                            matchedUids.remove(partnerUid)
+                        }
+                    }
+                }
+                refreshRadarUI()
+            }
+    }
+
+    // LISTENER 3: Tracks Taps (Both Inbound and Outbound) to manage badges
+    private fun listenForTaps() {
+        val myUid = auth.currentUser?.uid ?: return
+
+        // 1. Inbound Taps
+        inboundTapListener = db.collectionGroup("taps").whereEqualTo("to", myUid)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null || snapshots == null) return@addSnapshotListener
+
+                snapshots.documentChanges.forEach { dc ->
+                    val senderUid = dc.document.getString("from") ?: return@forEach
+                    if (dc.type == DocumentChange.Type.ADDED) {
+                        inboundTaps.add(senderUid)
+                        if (!snapshots.metadata.hasPendingWrites() && senderUid != myUid) {
+                            db.collection("users").document(senderUid).get().addOnSuccessListener { uDoc ->
+                                val senderName = uDoc.getString("firstName") ?: "Someone"
+                                triggerLocalNotification(senderName)
+                            }
+                        }
+                    } else if (dc.type == DocumentChange.Type.REMOVED) {
+                        inboundTaps.remove(senderUid)
+                    }
+                }
+                refreshRadarUI()
+            }
+
+        // 2. Outbound Taps
+        outboundTapListener = db.collectionGroup("taps").whereEqualTo("from", myUid)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null || snapshots == null) return@addSnapshotListener
+
+                snapshots.documentChanges.forEach { dc ->
+                    val targetUid = dc.document.getString("to") ?: return@forEach
+                    if (dc.type == DocumentChange.Type.ADDED) {
+                        outboundTaps.add(targetUid)
+                    } else if (dc.type == DocumentChange.Type.REMOVED) {
+                        outboundTaps.remove(targetUid)
+                    }
+                }
+                refreshRadarUI()
+            }
+    }
+
+    // CENTRAL UI ENGINE: Filters, Sorts, and Renders
+    private fun refreshRadarUI() {
+        val myUid = auth.currentUser?.uid ?: return
+
+        // 1. Filter out blocked users and active matches
+        val validUsers = rawNearbyUsers.filter { user ->
+            !matchedUids.contains(user.uid) && // Removed if matched
+                    !myBlockedUsers.contains(user.uid) &&
+                    !user.blockedUsers.contains(myUid)
+        }
+
+        // 2. Sort the list by priority ranking
+        val sortedUsers = validUsers.sortedWith { user1, user2 ->
+            val score1 = calculateSortScore(user1)
+            val score2 = calculateSortScore(user2)
+            score2.compareTo(score1) // Descending order (Highest score at the top)
+        }
+
+        // 3. Update the view
+        adapter.updateInteractionStates(inboundTaps, outboundTaps)
+        adapter.updateList(sortedUsers)
+    }
+
+    // SORTING ALGORITHM
+    private fun calculateSortScore(user: User): Int {
+        // Priority 1: They tapped you (Requires your attention immediately)
+        if (inboundTaps.contains(user.uid)) return 4
+
+        // Priority 2: You tapped them (Keep them near top so you can see status)
+        if (outboundTaps.contains(user.uid)) return 3
+
+        // Priority 3: High Compatibility (Super Match)
+        if (isCompatibilityModeActive && user.isCompatibilityModeActive) {
+            val sharedCount = user.hobbies.intersect(myHobbies.toSet()).size
+            if (sharedCount >= 7) {
+                if (!notifiedCompatibleUsers.contains(user.uid)) {
+                    notifiedCompatibleUsers.add(user.uid)
+                    triggerLocalNotification("High Compatibility! ${user.firstName} is nearby with $sharedCount shared interests!")
+                }
+                return 2
+            }
+        }
+
+        // Priority 4: Standard user nearby
+        return 1
     }
 
     private fun sendInterest(targetUser: User) {
@@ -304,57 +388,6 @@ class DiscoveryActivity : AppCompatActivity() {
                     db.collection("matches").document(matchId).set(matchData)
                 } else {
                     Toast.makeText(this, "Interest sent to ${targetUser.firstName}!", Toast.LENGTH_SHORT).show()
-                }
-            }
-    }
-
-    private fun listenForMatches() {
-        val myUid = auth.currentUser?.uid ?: return
-        matchListener = db.collection("matches")
-            .whereArrayContains("users", myUid)
-            .addSnapshotListener { snapshots, e ->
-                if (e != null) return@addSnapshotListener
-
-                snapshots?.documentChanges?.forEach { dc ->
-                    if (dc.type == DocumentChange.Type.ADDED) {
-                        val matchTimestamp = dc.document.getLong("timestamp") ?: 0L
-                        if (matchTimestamp > appSessionStartTime) {
-                            val matchId = dc.document.id
-                            val users = dc.document["users"] as? List<*>
-                            val stringUsers = users?.filterIsInstance<String>() ?: emptyList()
-                            val partnerUid = stringUsers.firstOrNull { it != myUid }
-
-                            if (partnerUid != null) {
-                                showMatchOverlay(partnerUid, matchId)
-                            }
-                        }
-                    }
-                }
-            }
-    }
-
-    private fun listenForInboundInterests() {
-        val myUid = auth.currentUser?.uid ?: return
-
-        inboundTapListener = db.collectionGroup("taps")
-            .whereEqualTo("to", myUid)
-            .addSnapshotListener { snapshots, e ->
-                if (e != null || snapshots == null) return@addSnapshotListener
-                if (snapshots.metadata.isFromCache) return@addSnapshotListener
-
-                snapshots.documentChanges.forEach { dc ->
-                    if (dc.type == DocumentChange.Type.ADDED) {
-                        if (!snapshots.metadata.hasPendingWrites()) {
-                            val senderUid = dc.document.getString("from") ?: return@forEach
-
-                            if (senderUid != myUid) {
-                                db.collection("users").document(senderUid).get().addOnSuccessListener { uDoc ->
-                                    val senderName = uDoc.getString("firstName") ?: "Someone"
-                                    triggerLocalNotification(senderName)
-                                }
-                            }
-                        }
-                    }
                 }
             }
     }
@@ -436,12 +469,12 @@ class DiscoveryActivity : AppCompatActivity() {
         radarListener?.remove()
         matchListener?.remove()
         inboundTapListener?.remove()
+        outboundTapListener?.remove()
         globalChatListener?.remove()
     }
 
     private fun listenForGlobalMessages() {
         val myUid = auth.currentUser?.uid ?: return
-
         globalChatListener = db.collectionGroup("messages")
             .whereEqualTo("receiverId", myUid)
             .addSnapshotListener { snapshots, e ->
@@ -463,7 +496,6 @@ class DiscoveryActivity : AppCompatActivity() {
     }
 
     private fun fuzzLocation(coordinate: Double): Double {
-        // Rounds to 3 decimal places (approx ~110m radius)
         return Math.round(coordinate * 1000.0) / 1000.0
     }
 }

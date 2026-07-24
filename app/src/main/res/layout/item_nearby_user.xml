@@ -15,7 +15,6 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- PERFECT CIRCLE PROFILE PICTURE -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cvImageContainer"
             android:layout_width="64dp"
@@ -35,7 +34,6 @@
                 android:background="#EFEFEF" />
         </androidx.cardview.widget.CardView>
 
-        <!-- USER INFO TEXT BLOCK -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -70,7 +68,17 @@
                 android:ellipsize="end"
                 android:layout_marginTop="2dp" />
 
-            <!-- COMPATIBILITY BADGE (Hidden by default, shown via Kotlin adapter) -->
+            <!-- NEW: INTEREST STATUS BADGE -->
+            <TextView
+                android:id="@+id/tvInterestStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/brand_primary"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:layout_marginTop="4dp" />
+
             <TextView
                 android:id="@+id/tvCompatibility"
                 android:layout_width="wrap_content"
@@ -84,7 +92,6 @@
 
         </LinearLayout>
 
-        <!-- THE PRIMARY ACTION BUTTON -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnTap"
             android:layout_width="wrap_content"
