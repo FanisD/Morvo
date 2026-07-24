@@ -6,7 +6,8 @@
     android:orientation="vertical"
     android:background="@color/background_light"
     android:paddingTop="32dp"
-    android:paddingHorizontal="24dp">
+    android:paddingHorizontal="24dp"
+    android:fitsSystemWindows="true">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -164,6 +165,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textCapSentences"
+            android:maxLength="40"
+            android:singleLine="true"
             android:textColor="@color/text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
