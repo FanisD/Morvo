@@ -261,12 +261,22 @@ class ChatActivity : AppCompatActivity() {
         val myUid = auth.currentUser?.uid ?: return
         val target = partnerUid ?: return
 
-        // FieldValue.arrayUnion safely adds the UID to the list without erasing existing ones
+        // 1. Calculate the unique match ID
+        val matchId = if (myUid < target) "${myUid}_${target}" else "${target}_${myUid}"
+
+        // 2. Shred the match document immediately
+        db.collection("matches").document(matchId).delete()
+
+        // 3. Wipe the interaction "taps" so they can't automatically match you again
+        db.collection("interests").document(matchId).collection("taps").document(myUid).delete()
+        db.collection("interests").document(matchId).collection("taps").document(target).delete()
+
+        // 4. Add them to your blocked list
         db.collection("users").document(myUid)
             .update("blockedUsers", FieldValue.arrayUnion(target))
             .addOnSuccessListener {
-                Toast.makeText(this, "User blocked. You will no longer see them.", Toast.LENGTH_LONG).show()
-                finish() // Kicks the user out of the chat screen and back to safety
+                Toast.makeText(this, "User blocked. Match terminated.", Toast.LENGTH_LONG).show()
+                finish() // Kicks you out of the chat screen and back to safety
             }
     }
 
