@@ -237,6 +237,11 @@ class DiscoveryActivity : AppCompatActivity() {
             .addSnapshotListener { snapshots, e ->
                 if (e != null) return@addSnapshotListener
 
+                // NEW: Ignore the stale local cache so ghost profiles don't flash on screen!
+                if (snapshots != null && snapshots.metadata.isFromCache) {
+                    return@addSnapshotListener
+                }
+
                 rawNearbyUsers.clear()
                 snapshots?.forEach { doc ->
                     val user = doc.toObject(User::class.java)
@@ -487,7 +492,10 @@ class DiscoveryActivity : AppCompatActivity() {
         radarListener?.remove()
         val uid = auth.currentUser?.uid ?: return
         db.collection("users").document(uid).update("isAvailable", false)
-        adapter.updateList(emptyList())
+
+        // NEW: Wipe the memory clean and trigger a UI refresh
+        rawNearbyUsers.clear()
+        refreshRadarUI()
     }
 
     override fun onDestroy() {
