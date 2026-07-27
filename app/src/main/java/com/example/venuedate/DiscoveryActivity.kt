@@ -328,11 +328,24 @@ class DiscoveryActivity : AppCompatActivity() {
     private fun refreshRadarUI() {
         val myUid = auth.currentUser?.uid ?: return
 
-        // 1. Filter out blocked users and active matches
+        // 1. Filter out blocked users, active matches, and enforce Compatibility Mode
         val validUsers = rawNearbyUsers.filter { user ->
-            !matchedUids.contains(user.uid) && // Removed if matched
+
+            // Basic safety checks (not blocked, not already matched)
+            val isClean = !matchedUids.contains(user.uid) &&
                     !myBlockedUsers.contains(user.uid) &&
                     !user.blockedUsers.contains(myUid)
+
+            // HARD FILTER: If mode is ON, hide anyone who isn't a Super Match
+            val passesCompatibility = if (isCompatibilityModeActive) {
+                val sharedCount = user.hobbies.intersect(myHobbies.toSet()).size
+                // They must also have the mode on AND share 7+ hobbies
+                user.isCompatibilityModeActive && sharedCount >= 7
+            } else {
+                true // If mode is OFF, let everyone pass
+            }
+
+            isClean && passesCompatibility
         }
 
         // 2. Sort the list by priority ranking
