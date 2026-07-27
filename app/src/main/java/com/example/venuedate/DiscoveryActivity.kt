@@ -49,7 +49,7 @@ class DiscoveryActivity : AppCompatActivity() {
 
     // Real-time cached lists
     private val rawNearbyUsers = mutableListOf<User>()
-    private val matchedUids = mutableSetOf<String>()
+    private val activeMatches = mutableMapOf<String, Long>() // REPLACED: Now tracks UID and Expiration Time!
     private val inboundTaps = mutableSetOf<String>()
     private val outboundTaps = mutableSetOf<String>()
 
@@ -265,20 +265,36 @@ class DiscoveryActivity : AppCompatActivity() {
             .addSnapshotListener { snapshots, e ->
                 if (e != null) return@addSnapshotListener
 
+                val currentTime = System.currentTimeMillis()
+
                 snapshots?.documentChanges?.forEach { dc ->
                     val users = dc.document["users"] as? List<*>
                     val stringUsers = users?.filterIsInstance<String>() ?: emptyList()
                     val partnerUid = stringUsers.firstOrNull { it != myUid }
+                    val expiresAt = dc.document.getLong("expiresAt") ?: 0L
 
                     if (partnerUid != null) {
-                        if (dc.type == DocumentChange.Type.ADDED) {
-                            matchedUids.add(partnerUid) // Flags them to be hidden
-                            val matchTimestamp = dc.document.getLong("timestamp") ?: 0L
-                            if (matchTimestamp > appSessionStartTime) {
-                                showMatchOverlay(partnerUid, dc.document.id)
+                        if (dc.type == DocumentChange.Type.ADDED || dc.type == DocumentChange.Type.MODIFIED) {
+
+                            // Check if the match is still valid
+                            if (expiresAt > currentTime) {
+                                activeMatches[partnerUid] = expiresAt
+
+                                val matchTimestamp = dc.document.getLong("timestamp") ?: 0L
+                                if (matchTimestamp > appSessionStartTime && dc.type == DocumentChange.Type.ADDED) {
+                                    showMatchOverlay(partnerUid, dc.document.id)
+                                }
+                            } else {
+                                // The match is already expired! Make sure they aren't hidden
+                                activeMatches.remove(partnerUid)
+
+                                // Delete the old Tap data so the cycle can start completely fresh
+                                db.collection("interests").document(dc.document.id)
+                                    .collection("taps").document(myUid).delete()
                             }
+
                         } else if (dc.type == DocumentChange.Type.REMOVED) {
-                            matchedUids.remove(partnerUid)
+                            activeMatches.remove(partnerUid)
                         }
                     }
                 }
@@ -332,22 +348,33 @@ class DiscoveryActivity : AppCompatActivity() {
     // CENTRAL UI ENGINE: Filters, Sorts, and Renders
     private fun refreshRadarUI() {
         val myUid = auth.currentUser?.uid ?: return
+        val currentTime = System.currentTimeMillis()
+
+        // NEW: Time-check! Find matches that just expired right now and clean them up
+        val expiredUids = activeMatches.filterValues { it <= currentTime }.keys.toList()
+        expiredUids.forEach { expiredUid ->
+            activeMatches.remove(expiredUid)
+
+            val matchId = if (myUid < expiredUid) "${myUid}_${expiredUid}" else "${expiredUid}_${myUid}"
+
+            // Delete our old tap so we can tap them again!
+            db.collection("interests").document(matchId).collection("taps").document(myUid).delete()
+        }
 
         // 1. Filter out blocked users, active matches, and enforce Compatibility Mode
         val validUsers = rawNearbyUsers.filter { user ->
 
-            // Basic safety checks (not blocked, not already matched)
-            val isClean = !matchedUids.contains(user.uid) &&
+            // Basic safety checks (not blocked, not currently in an active match)
+            val isClean = !activeMatches.containsKey(user.uid) &&
                     !myBlockedUsers.contains(user.uid) &&
                     !user.blockedUsers.contains(myUid)
 
             // HARD FILTER: If mode is ON, hide anyone who isn't a Super Match
             val passesCompatibility = if (isCompatibilityModeActive) {
                 val sharedCount = user.hobbies.intersect(myHobbies.toSet()).size
-                // They must also have the mode on AND share 7+ hobbies
                 user.isCompatibilityModeActive && sharedCount >= 7
             } else {
-                true // If mode is OFF, let everyone pass
+                true
             }
 
             isClean && passesCompatibility
@@ -357,7 +384,7 @@ class DiscoveryActivity : AppCompatActivity() {
         val sortedUsers = validUsers.sortedWith { user1, user2 ->
             val score1 = calculateSortScore(user1)
             val score2 = calculateSortScore(user2)
-            score2.compareTo(score1) // Descending order (Highest score at the top)
+            score2.compareTo(score1) // Descending order
         }
 
         // 3. Update the view
