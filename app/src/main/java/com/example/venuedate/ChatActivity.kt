@@ -83,11 +83,12 @@ class ChatActivity : AppCompatActivity() {
             finish()
         }
 
-        // 2. Options Menu (3-dot icon) Action
+        // 2. Options Menu (3-dot/gear icon) Action
         btnOptions.setOnClickListener { view ->
             val popup = PopupMenu(this, view)
             popup.menu.add(0, 1, 0, "Report User")
             popup.menu.add(0, 2, 0, "Block User")
+            popup.menu.add(0, 3, 0, "End Match") // NEW: End Match Option
 
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
@@ -99,11 +100,34 @@ class ChatActivity : AppCompatActivity() {
                         blockUser()
                         true
                     }
+                    3 -> {
+                        endMatch() // NEW: Triggers the unmatch logic
+                        true
+                    }
                     else -> false
                 }
             }
             popup.show()
         }
+    }
+
+    private fun endMatch() {
+        val myUid = auth.currentUser?.uid ?: return
+        val target = partnerUid ?: return
+
+        // 1. Calculate the exact match ID
+        val matchId = if (myUid < target) "${myUid}_${target}" else "${target}_${myUid}"
+
+        // 2. Shred the match document to expire the chat instantly
+        db.collection("matches").document(matchId).delete()
+
+        // 3. Wipe the interaction "taps" so you both start fresh on the radar
+        db.collection("interests").document(matchId).collection("taps").document(myUid).delete()
+        db.collection("interests").document(matchId).collection("taps").document(target).delete()
+
+        // 4. Notify and exit
+        Toast.makeText(this, "Match ended.", Toast.LENGTH_SHORT).show()
+        finish() // Kicks you out of the chat screen
     }
 
     private fun startTimer(tv: TextView) {
@@ -261,12 +285,22 @@ class ChatActivity : AppCompatActivity() {
         val myUid = auth.currentUser?.uid ?: return
         val target = partnerUid ?: return
 
-        // FieldValue.arrayUnion safely adds the UID to the list without erasing existing ones
+        // 1. Calculate the unique match ID
+        val matchId = if (myUid < target) "${myUid}_${target}" else "${target}_${myUid}"
+
+        // 2. Shred the match document immediately
+        db.collection("matches").document(matchId).delete()
+
+        // 3. Wipe the interaction "taps" so they can't automatically match you again
+        db.collection("interests").document(matchId).collection("taps").document(myUid).delete()
+        db.collection("interests").document(matchId).collection("taps").document(target).delete()
+
+        // 4. Add them to your blocked list
         db.collection("users").document(myUid)
             .update("blockedUsers", FieldValue.arrayUnion(target))
             .addOnSuccessListener {
-                Toast.makeText(this, "User blocked. You will no longer see them.", Toast.LENGTH_LONG).show()
-                finish() // Kicks the user out of the chat screen and back to safety
+                Toast.makeText(this, "User blocked. Match terminated.", Toast.LENGTH_LONG).show()
+                finish() // Kicks you out of the chat screen and back to safety
             }
     }
 
