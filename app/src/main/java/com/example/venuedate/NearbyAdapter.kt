@@ -37,13 +37,7 @@ class NearbyAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val user = users[position]
         holder.tvName.text = "${user.firstName}, ${user.age}"
-        if (user.locationContext.isNotEmpty()) {
-            // Shows both! e.g., "Good Vibes Only • Sitting at the bar"
-            holder.tvVibe.text = "${user.vibeTag} • ${user.locationContext}"
-        } else {
-            // Falls back to just the vibe tag if they didn't type a location
-            holder.tvVibe.text = user.vibeTag
-        }
+        holder.tvVibe.text = user.vibeTag
 
         // 1. Evaluate Interaction States
         val hasInbound = inboundTaps.contains(user.uid)

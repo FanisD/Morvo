@@ -12,7 +12,6 @@ data class User(
     val city: String = "",
     val occupation: String = "",
     val vibeTag: String = "",
-    var locationContext: String = "",
     val hobbies: List<String> = emptyList(),
     val imageUrls: List<String> = emptyList(),
     val email: String = "",

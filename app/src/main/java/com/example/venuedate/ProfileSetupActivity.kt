@@ -275,31 +275,26 @@ class ProfileSetupActivity : AppCompatActivity() {
 
                 Toast.makeText(this, "Deleting account and cleaning data...", Toast.LENGTH_SHORT).show()
 
-                // 1. Immediately redirect to login screen
-                startActivity(Intent(this, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                })
-
-                // 2. Delete Storage Photos
+                // 1. Delete Storage Photos
                 for (i in 0..4) {
                     storage.reference.child("profiles/$uid/img_$i.jpg").delete()
                 }
 
-                // 3. Clean up Matches where this user is listed
+                // 2. Clean up Matches where this user is listed
                 db.collection("matches").whereArrayContains("users", uid).get().addOnSuccessListener { snapshot ->
                     for (doc in snapshot.documents) {
                         doc.reference.delete()
                     }
                 }
 
-                // 4. Clean up Reports created by this user
+                // 3. Clean up Reports created by this user
                 db.collection("reports").whereEqualTo("reporter", uid).get().addOnSuccessListener { snapshot ->
                     for (doc in snapshot.documents) {
                         doc.reference.delete()
                     }
                 }
 
-                // 5. Clean up Taps/Interests sent by or to this user
+                // 4. Clean up Taps/Interests sent by or to this user
                 db.collectionGroup("taps").whereEqualTo("from", uid).get().addOnSuccessListener { snapshot ->
                     for (doc in snapshot.documents) {
                         doc.reference.delete()
@@ -311,10 +306,16 @@ class ProfileSetupActivity : AppCompatActivity() {
                     }
                 }
 
-                // 6. Delete Main User Document & Auth Profile
+                // 5. Delete Main User Document & Auth Profile
                 db.collection("users").document(uid).delete().addOnCompleteListener {
                     user.delete().addOnCompleteListener {
+                        // First log the user out completely...
                         auth.signOut()
+
+                        // ...THEN redirect to the login screen!
+                        startActivity(Intent(this, MainActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        })
                     }
                 }
             }
