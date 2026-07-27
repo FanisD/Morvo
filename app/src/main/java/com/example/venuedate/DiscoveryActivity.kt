@@ -205,7 +205,8 @@ class DiscoveryActivity : AppCompatActivity() {
 
     private fun startLiveStatus() {
         val uid = auth.currentUser?.uid ?: return
-        val contextText = findViewById<EditText>(R.id.etContext).text.toString().trim()
+
+        // Translate the current slider position when activating the live radar
         val rangeIndex = findViewById<Slider>(R.id.rangeSlider).value.toInt()
         val rangeMeters = intArrayOf(50, 100, 200)[rangeIndex]
 
@@ -217,7 +218,6 @@ class DiscoveryActivity : AppCompatActivity() {
                     "isAvailable" to true,
                     "lastLat" to fuzzLocation(location.latitude),
                     "lastLng" to fuzzLocation(location.longitude),
-                    "locationContext" to contextText,
                     "availableUntil" to System.currentTimeMillis() + (20 * 60 * 1000),
                     "isCompatibilityModeActive" to isCompatibilityModeActive
                 )

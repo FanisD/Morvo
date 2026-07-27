@@ -148,29 +148,6 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:hint="Optional: Where are you? (e.g. Blue Bar)"
-        app:boxBackgroundColor="@color/surface_card"
-        app:boxCornerRadiusBottomEnd="16dp"
-        app:boxCornerRadiusBottomStart="16dp"
-        app:boxCornerRadiusTopEnd="16dp"
-        app:boxCornerRadiusTopStart="16dp"
-        app:boxStrokeColor="@color/brand_primary">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etContext"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textCapSentences"
-            android:maxLength="40"
-            android:singleLine="true"
-            android:textColor="@color/text_primary" />
-    </com.google.android.material.textfield.TextInputLayout>
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
