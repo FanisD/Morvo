@@ -273,49 +273,52 @@ class ProfileSetupActivity : AppCompatActivity() {
                 val user = auth.currentUser
                 val uid = user?.uid ?: return@setPositiveButton
 
-                Toast.makeText(this, "Deleting account and cleaning data...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Deleting account and cleaning data...", Toast.LENGTH_LONG).show()
 
-                // 1. Delete Storage Photos
+                // 1. Delete Storage Photos (These can safely run in the background)
                 for (i in 0..4) {
                     storage.reference.child("profiles/$uid/img_$i.jpg").delete()
                 }
 
-                // 2. Clean up Matches where this user is listed
-                db.collection("matches").whereArrayContains("users", uid).get().addOnSuccessListener { snapshot ->
-                    for (doc in snapshot.documents) {
-                        doc.reference.delete()
-                    }
-                }
+                // Create a batch to execute all database deletions simultaneously
+                val batch = db.batch()
 
-                // 3. Clean up Reports created by this user
-                db.collection("reports").whereEqualTo("reporter", uid).get().addOnSuccessListener { snapshot ->
-                    for (doc in snapshot.documents) {
-                        doc.reference.delete()
+                // 2. Find Matches
+                db.collection("matches").whereArrayContains("users", uid).get().addOnSuccessListener { matchSnap ->
+                    for (doc in matchSnap.documents) {
+                        batch.delete(doc.reference)
                     }
-                }
 
-                // 4. Clean up Taps/Interests sent by or to this user
-                db.collectionGroup("taps").whereEqualTo("from", uid).get().addOnSuccessListener { snapshot ->
-                    for (doc in snapshot.documents) {
-                        doc.reference.delete()
-                    }
-                }
-                db.collectionGroup("taps").whereEqualTo("to", uid).get().addOnSuccessListener { snapshot ->
-                    for (doc in snapshot.documents) {
-                        doc.reference.delete()
-                    }
-                }
+                    // 3. Find Outbound Taps (nested to ensure proper order)
+                    db.collectionGroup("taps").whereEqualTo("from", uid).get().addOnSuccessListener { fromSnap ->
+                        for (doc in fromSnap.documents) {
+                            batch.delete(doc.reference)
+                        }
 
-                // 5. Delete Main User Document & Auth Profile
-                db.collection("users").document(uid).delete().addOnCompleteListener {
-                    user.delete().addOnCompleteListener {
-                        // First log the user out completely...
-                        auth.signOut()
+                        // 4. Find Inbound Taps
+                        db.collectionGroup("taps").whereEqualTo("to", uid).get().addOnSuccessListener { toSnap ->
+                            for (doc in toSnap.documents) {
+                                batch.delete(doc.reference)
+                            }
 
-                        // ...THEN redirect to the login screen!
-                        startActivity(Intent(this, MainActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        })
+                            // 5. Add Main User Profile to the batch
+                            val userRef = db.collection("users").document(uid)
+                            batch.delete(userRef)
+
+                            // 6. COMMIT THE BATCH: Delete everything at the exact same time
+                            batch.commit().addOnCompleteListener {
+
+                                // 7. ONLY AFTER the database is clean, we delete the Auth and sign out
+                                user.delete().addOnCompleteListener {
+                                    auth.signOut()
+
+                                    // Redirect to login screen
+                                    startActivity(Intent(this, MainActivity::class.java).apply {
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    })
+                                }
+                            }
+                        }
                     }
                 }
             }

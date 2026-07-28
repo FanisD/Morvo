@@ -291,12 +291,15 @@ class DiscoveryActivity : AppCompatActivity() {
                                     showMatchOverlay(partnerUid, dc.document.id)
                                 }
                             } else {
-                                // The match is already expired! Make sure they aren't hidden
+                                // The match is already expired!
                                 activeMatches.remove(partnerUid)
+                                val matchId = dc.document.id
 
-                                // Delete the old Tap data so the cycle can start completely fresh
-                                db.collection("interests").document(dc.document.id)
-                                    .collection("taps").document(myUid).delete()
+                                // Delete the old Tap data
+                                db.collection("interests").document(matchId).collection("taps").document(myUid).delete()
+
+                                // NEW: Actually delete the match document from the database!
+                                db.collection("matches").document(matchId).delete()
                             }
 
                         } else if (dc.type == DocumentChange.Type.REMOVED) {
@@ -370,7 +373,11 @@ class DiscoveryActivity : AppCompatActivity() {
         expiredUids.forEach { expiredUid ->
             activeMatches.remove(expiredUid)
             val matchId = if (myUid < expiredUid) "${myUid}_${expiredUid}" else "${expiredUid}_${myUid}"
+
             db.collection("interests").document(matchId).collection("taps").document(myUid).delete()
+
+            // NEW: Actually delete the match document from the database!
+            db.collection("matches").document(matchId).delete()
         }
 
         // Clean up expired Inbound Taps
