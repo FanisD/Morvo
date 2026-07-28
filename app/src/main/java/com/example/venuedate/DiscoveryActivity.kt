@@ -241,17 +241,19 @@ class DiscoveryActivity : AppCompatActivity() {
             .addSnapshotListener { snapshots, e ->
                 if (e != null) return@addSnapshotListener
 
-                // NEW: Ignore the stale local cache so ghost profiles don't flash on screen!
-                if (snapshots != null && snapshots.metadata.isFromCache) {
-                    return@addSnapshotListener
-                }
-
+                // Get the exact time right now
+                val currentTime = System.currentTimeMillis()
                 rawNearbyUsers.clear()
+
                 snapshots?.forEach { doc ->
                     val user = doc.toObject(User::class.java)
-                    if (user != null && user.uid != auth.currentUser?.uid) {
+
+                    // NEW: Make sure they aren't ourselves, AND their 20-minute timer is still strictly active!
+                    if (user != null && user.uid != auth.currentUser?.uid && user.availableUntil > currentTime) {
+
                         val dist = FloatArray(1)
                         Location.distanceBetween(myLat, myLng, user.lastLat, user.lastLng, dist)
+
                         if (dist[0] <= rangeMeters) {
                             rawNearbyUsers.add(user)
                         }
