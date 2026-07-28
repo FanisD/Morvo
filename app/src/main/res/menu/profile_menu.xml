@@ -7,9 +7,6 @@
         android:id="@+id/action_appearance"
         android:title="Appearance" />
     <item
-        android:id="@+id/action_language"
-        android:title="Language" />
-    <item
         android:id="@+id/action_logout"
         android:title="Log Out" />
 </menu>

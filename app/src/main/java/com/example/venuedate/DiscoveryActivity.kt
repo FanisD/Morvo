@@ -1,6 +1,7 @@
 package com.example.venuedate
 
 import android.Manifest
+import android.app.AlertDialog
 import android.app.Dialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -18,6 +19,7 @@ import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -32,8 +34,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import android.util.Log
-
 class DiscoveryActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -73,6 +73,17 @@ class DiscoveryActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // NEW: Check SharedPreferences for the saved theme before drawing the UI
+        val prefs = getSharedPreferences("ThemePrefs", Context.MODE_PRIVATE)
+        val savedTheme = prefs.getInt("theme_mode", 0) // 0 is System Default
+        val mode = when (savedTheme) {
+            1 -> AppCompatDelegate.MODE_NIGHT_NO
+            2 -> AppCompatDelegate.MODE_NIGHT_YES
+            else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        }
+        AppCompatDelegate.setDefaultNightMode(mode)
+
         setContentView(R.layout.activity_discovery)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -134,7 +145,7 @@ class DiscoveryActivity : AppCompatActivity() {
                         true
                     }
                     R.id.action_appearance -> {
-                        Toast.makeText(this, "Appearance settings coming soon", Toast.LENGTH_SHORT).show()
+                        showAppearanceDialog()
                         true
                     }
                     R.id.action_logout -> {
@@ -298,7 +309,7 @@ class DiscoveryActivity : AppCompatActivity() {
                                 // Delete the old Tap data
                                 db.collection("interests").document(matchId).collection("taps").document(myUid).delete()
 
-                                // NEW: Actually delete the match document from the database!
+                                // Actually delete the match document from the database!
                                 db.collection("matches").document(matchId).delete()
                             }
 
@@ -364,9 +375,8 @@ class DiscoveryActivity : AppCompatActivity() {
         val myUid = auth.currentUser?.uid ?: return
         val currentTime = System.currentTimeMillis()
 
-        // SET TEST EXPIRATION TIME: 1 Minute = 60,000 ms.
-        // (When ready for production, change this to 60 * 60 * 1000L for 1 hour)
-        val tapExpirationLimit = 60 * 1000L
+        // 1 HOUR EXPIRATION TIME
+        val tapExpirationLimit = 60 * 60 * 1000L
 
         // Clean up expired Matches
         val expiredUids = activeMatches.filterValues { it <= currentTime }.keys.toList()
@@ -376,7 +386,7 @@ class DiscoveryActivity : AppCompatActivity() {
 
             db.collection("interests").document(matchId).collection("taps").document(myUid).delete()
 
-            // NEW: Actually delete the match document from the database!
+            // Actually delete the match document from the database!
             db.collection("matches").document(matchId).delete()
         }
 
@@ -558,7 +568,7 @@ class DiscoveryActivity : AppCompatActivity() {
         val uid = auth.currentUser?.uid ?: return
         db.collection("users").document(uid).update("isAvailable", false)
 
-        // NEW: Wipe the memory clean and trigger a UI refresh
+        // Wipe the memory clean and trigger a UI refresh
         rawNearbyUsers.clear()
         refreshRadarUI()
     }
@@ -622,7 +632,7 @@ class DiscoveryActivity : AppCompatActivity() {
             "No interests added."
         }
 
-        // NEW: Load all images into the ViewPager adapter
+        // Load all images into the ViewPager adapter
         if (user.imageUrls.isNotEmpty() && vpPhotos != null) {
             vpPhotos.adapter = ProfilePhotosAdapter(user.imageUrls)
         } else if (vpPhotos != null) {
@@ -631,6 +641,35 @@ class DiscoveryActivity : AppCompatActivity() {
         }
 
         bottomSheetDialog.show()
+    }
+
+    private fun showAppearanceDialog() {
+        val options = arrayOf("System Default", "Light", "Dark")
+        val prefs = getSharedPreferences("ThemePrefs", Context.MODE_PRIVATE)
+
+        // Get the current choice so the dialog checks the right bubble
+        val currentChoice = prefs.getInt("theme_mode", 0)
+
+        AlertDialog.Builder(this)
+            .setTitle("Choose Theme")
+            .setSingleChoiceItems(options, currentChoice) { dialog, which ->
+
+                // Map their choice to the correct Android Theme mode
+                val mode = when (which) {
+                    1 -> AppCompatDelegate.MODE_NIGHT_NO
+                    2 -> AppCompatDelegate.MODE_NIGHT_YES
+                    else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                }
+
+                // Apply the theme instantly
+                AppCompatDelegate.setDefaultNightMode(mode)
+
+                // Save their choice permanently to the device memory
+                prefs.edit().putInt("theme_mode", which).apply()
+
+                dialog.dismiss()
+            }
+            .show()
     }
 
     // Nested adapter to handle the swipable photo gallery in the Bottom Sheet
