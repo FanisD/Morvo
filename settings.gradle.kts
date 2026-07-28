@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "VenueDate"
+rootProject.name = "Morvo"
 include(":app")
