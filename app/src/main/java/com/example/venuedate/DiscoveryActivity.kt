@@ -364,9 +364,8 @@ class DiscoveryActivity : AppCompatActivity() {
         val myUid = auth.currentUser?.uid ?: return
         val currentTime = System.currentTimeMillis()
 
-        // SET TEST EXPIRATION TIME: 1 Minute = 60,000 ms.
-        // (When ready for production, change this to 60 * 60 * 1000L for 1 hour)
-        val tapExpirationLimit = 60 * 1000L
+        // SET TEST EXPIRATION TIME: 1 HOUR
+        val tapExpirationLimit = 60 * 60 * 1000L
 
         // Clean up expired Matches
         val expiredUids = activeMatches.filterValues { it <= currentTime }.keys.toList()

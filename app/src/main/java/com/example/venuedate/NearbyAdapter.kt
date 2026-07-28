@@ -43,16 +43,18 @@ class NearbyAdapter(
         val hasInbound = inboundTaps.contains(user.uid)
         val hasOutbound = outboundTaps.contains(user.uid)
 
+        // RESET DEFAULT STATES (Crucial for Recyclerview so scrolling doesn't mix up UI)
         holder.btnTap.visibility = View.VISIBLE
         holder.btnTap.text = "Tap"
         holder.tvInterestStatus.visibility = View.GONE
+        holder.tvBadge.visibility = View.GONE
 
         if (hasInbound) {
             holder.tvInterestStatus.text = "✨ Interested in You!"
             holder.tvInterestStatus.visibility = View.VISIBLE
             holder.btnTap.text = "Match" // Changes button text since tapping them back creates a match
         } else if (hasOutbound) {
-            holder.tvInterestStatus.text = "⏳ You are interested in"
+            holder.tvInterestStatus.text = "⏳ You are interested"
             holder.tvInterestStatus.visibility = View.VISIBLE
             holder.btnTap.visibility = View.GONE // Hides the button so you can't double-tap
         }
@@ -63,11 +65,7 @@ class NearbyAdapter(
             if (sharedCount >= 7) {
                 holder.tvBadge.text = "🔥 Top Match ($sharedCount Shared)"
                 holder.tvBadge.visibility = View.VISIBLE
-            } else {
-                holder.tvBadge.visibility = View.GONE
             }
-        } else {
-            holder.tvBadge.visibility = View.GONE
         }
 
         // 3. Load Image
@@ -79,12 +77,8 @@ class NearbyAdapter(
                 .into(holder.ivThumb)
         }
 
+        // 4. Click Listeners
         holder.btnTap.setOnClickListener { onIntentClick(user) }
-
-        // 1. Click listener for the specific "Tap" / "Match" button
-        holder.btnTap.setOnClickListener { onIntentClick(user) }
-
-        // 2. NEW: Click listener for the entire card to show the profile details!
         holder.itemView.setOnClickListener { onProfileClick(user) }
     }
 
