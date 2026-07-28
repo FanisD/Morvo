@@ -49,9 +49,9 @@ class DiscoveryActivity : AppCompatActivity() {
 
     // Real-time cached lists
     private val rawNearbyUsers = mutableListOf<User>()
-    private val activeMatches = mutableMapOf<String, Long>() // REPLACED: Now tracks UID and Expiration Time!
-    private val inboundTaps = mutableSetOf<String>()
-    private val outboundTaps = mutableSetOf<String>()
+    private val activeMatches = mutableMapOf<String, Long>()
+    private val inboundTaps = mutableMapOf<String, Long>()
+    private val outboundTaps = mutableMapOf<String, Long>()
 
     private val channelId = "venue_date_radar"
     private val appSessionStartTime = System.currentTimeMillis()
@@ -313,9 +313,12 @@ class DiscoveryActivity : AppCompatActivity() {
 
                 snapshots.documentChanges.forEach { dc ->
                     val senderUid = dc.document.getString("from") ?: return@forEach
-                    if (dc.type == DocumentChange.Type.ADDED) {
-                        inboundTaps.add(senderUid)
-                        if (!snapshots.metadata.hasPendingWrites() && senderUid != myUid) {
+                    val timestamp = dc.document.getLong("timestamp") ?: 0L // Get the time
+
+                    if (dc.type == DocumentChange.Type.ADDED || dc.type == DocumentChange.Type.MODIFIED) {
+                        inboundTaps[senderUid] = timestamp // Save time instead of just the UID
+
+                        if (dc.type == DocumentChange.Type.ADDED && !snapshots.metadata.hasPendingWrites() && senderUid != myUid) {
                             db.collection("users").document(senderUid).get().addOnSuccessListener { uDoc ->
                                 val senderName = uDoc.getString("firstName") ?: "Someone"
                                 triggerLocalNotification(senderName)
@@ -335,8 +338,10 @@ class DiscoveryActivity : AppCompatActivity() {
 
                 snapshots.documentChanges.forEach { dc ->
                     val targetUid = dc.document.getString("to") ?: return@forEach
-                    if (dc.type == DocumentChange.Type.ADDED) {
-                        outboundTaps.add(targetUid)
+                    val timestamp = dc.document.getLong("timestamp") ?: 0L
+
+                    if (dc.type == DocumentChange.Type.ADDED || dc.type == DocumentChange.Type.MODIFIED) {
+                        outboundTaps[targetUid] = timestamp
                     } else if (dc.type == DocumentChange.Type.REMOVED) {
                         outboundTaps.remove(targetUid)
                     }
@@ -350,33 +355,46 @@ class DiscoveryActivity : AppCompatActivity() {
         val myUid = auth.currentUser?.uid ?: return
         val currentTime = System.currentTimeMillis()
 
-        // NEW: Time-check! Find matches that just expired right now and clean them up
+        // SET TEST EXPIRATION TIME: 1 Minute = 60,000 ms.
+        // (When ready for production, change this to 60 * 60 * 1000L for 1 hour)
+        val tapExpirationLimit = 60 * 1000L
+
+        // Clean up expired Matches
         val expiredUids = activeMatches.filterValues { it <= currentTime }.keys.toList()
         expiredUids.forEach { expiredUid ->
             activeMatches.remove(expiredUid)
-
             val matchId = if (myUid < expiredUid) "${myUid}_${expiredUid}" else "${expiredUid}_${myUid}"
+            db.collection("interests").document(matchId).collection("taps").document(myUid).delete()
+        }
 
-            // Delete our old tap so we can tap them again!
+        // Clean up expired Inbound Taps
+        val expiredInbound = inboundTaps.filterValues { currentTime - it > tapExpirationLimit }.keys.toList()
+        expiredInbound.forEach { senderUid ->
+            inboundTaps.remove(senderUid)
+            val matchId = if (myUid < senderUid) "${myUid}_${senderUid}" else "${senderUid}_${myUid}"
+            db.collection("interests").document(matchId).collection("taps").document(senderUid).delete()
+        }
+
+        // Clean up expired Outbound Taps
+        val expiredOutbound = outboundTaps.filterValues { currentTime - it > tapExpirationLimit }.keys.toList()
+        expiredOutbound.forEach { targetUid ->
+            outboundTaps.remove(targetUid)
+            val matchId = if (myUid < targetUid) "${myUid}_${targetUid}" else "${targetUid}_${myUid}"
             db.collection("interests").document(matchId).collection("taps").document(myUid).delete()
         }
 
         // 1. Filter out blocked users, active matches, and enforce Compatibility Mode
         val validUsers = rawNearbyUsers.filter { user ->
-
-            // Basic safety checks (not blocked, not currently in an active match)
             val isClean = !activeMatches.containsKey(user.uid) &&
                     !myBlockedUsers.contains(user.uid) &&
                     !user.blockedUsers.contains(myUid)
 
-            // HARD FILTER: If mode is ON, hide anyone who isn't a Super Match
             val passesCompatibility = if (isCompatibilityModeActive) {
                 val sharedCount = user.hobbies.intersect(myHobbies.toSet()).size
                 user.isCompatibilityModeActive && sharedCount >= 7
             } else {
                 true
             }
-
             isClean && passesCompatibility
         }
 
@@ -384,21 +402,21 @@ class DiscoveryActivity : AppCompatActivity() {
         val sortedUsers = validUsers.sortedWith { user1, user2 ->
             val score1 = calculateSortScore(user1)
             val score2 = calculateSortScore(user2)
-            score2.compareTo(score1) // Descending order
+            score2.compareTo(score1)
         }
 
-        // 3. Update the view
-        adapter.updateInteractionStates(inboundTaps, outboundTaps)
+        // 3. Update the view (Pass only the keys/UIDs to the adapter)
+        adapter.updateInteractionStates(inboundTaps.keys, outboundTaps.keys)
         adapter.updateList(sortedUsers)
     }
 
     // SORTING ALGORITHM
     private fun calculateSortScore(user: User): Int {
         // Priority 1: They tapped you (Requires your attention immediately)
-        if (inboundTaps.contains(user.uid)) return 4
+        if (inboundTaps.containsKey(user.uid)) return 4
 
         // Priority 2: You tapped them (Keep them near top so you can see status)
-        if (outboundTaps.contains(user.uid)) return 3
+        if (outboundTaps.containsKey(user.uid)) return 3
 
         // Priority 3: High Compatibility (Super Match)
         if (isCompatibilityModeActive && user.isCompatibilityModeActive) {
