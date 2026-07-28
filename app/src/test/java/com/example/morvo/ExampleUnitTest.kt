@@ -1,4 +1,4 @@
-package com.example.venuedate
+package com.example.morvo
 
 import org.junit.Test
 

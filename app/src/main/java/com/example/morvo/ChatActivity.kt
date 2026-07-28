@@ -1,4 +1,4 @@
-package com.example.venuedate
+package com.example.morvo
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.venuedate"
+    namespace = "com.example.morvo"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.venuedate"
+        applicationId = "com.example.morvo"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

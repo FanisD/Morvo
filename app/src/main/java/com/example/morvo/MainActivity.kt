@@ -1,4 +1,4 @@
-package com.example.venuedate
+package com.example.morvo
 
 import android.app.Activity
 import android.content.Intent

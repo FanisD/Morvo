@@ -1,7 +1,6 @@
-package com.example.venuedate
+package com.example.morvo
 
 import android.content.Intent
-import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
