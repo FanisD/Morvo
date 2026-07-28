@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:748605177897:android:e04058b5df459eaf4f9c38",
+        "mobilesdk_app_id": "1:748605177897:android:119ab7d84b5697814f9c38",
         "android_client_info": {
-          "package_name": "com.company.morvo"
+          "package_name": "com.example.morvo"
         }
       },
       "oauth_client": [
