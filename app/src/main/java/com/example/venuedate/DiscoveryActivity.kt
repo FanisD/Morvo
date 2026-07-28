@@ -59,6 +59,8 @@ class DiscoveryActivity : AppCompatActivity() {
 
     private var myHobbies = listOf<String>()
     private var myBlockedUsers = listOf<String>()
+    private var myGender = ""
+    private var myInterestedIn = ""
     private var isCompatibilityModeActive = false
 
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -161,6 +163,8 @@ class DiscoveryActivity : AppCompatActivity() {
             if (user != null) {
                 myHobbies = user.hobbies
                 myBlockedUsers = user.blockedUsers
+                myGender = user.gender
+                myInterestedIn = user.interestedIn
                 val switchComp = findViewById<SwitchMaterial>(R.id.switchCompatibilityMode)
 
                 if (myHobbies.size >= 10) {
@@ -383,19 +387,26 @@ class DiscoveryActivity : AppCompatActivity() {
             db.collection("interests").document(matchId).collection("taps").document(myUid).delete()
         }
 
-        // 1. Filter out blocked users, active matches, and enforce Compatibility Mode
+        // 1. Filter out blocked users, active matches, enforce Compatibility Mode, AND enforce Gender Preferences
         val validUsers = rawNearbyUsers.filter { user ->
+
+            // Basic safety checks
             val isClean = !activeMatches.containsKey(user.uid) &&
                     !myBlockedUsers.contains(user.uid) &&
                     !user.blockedUsers.contains(myUid)
 
+            // HARD FILTER: Gender & Preference Match
+            val isGenderMatch = isMutuallyInterested(myGender, myInterestedIn, user.gender, user.interestedIn)
+
+            // HARD FILTER: If mode is ON, hide anyone who isn't a Super Match
             val passesCompatibility = if (isCompatibilityModeActive) {
                 val sharedCount = user.hobbies.intersect(myHobbies.toSet()).size
                 user.isCompatibilityModeActive && sharedCount >= 7
             } else {
                 true
             }
-            isClean && passesCompatibility
+
+            isClean && isGenderMatch && passesCompatibility
         }
 
         // 2. Sort the list by priority ranking
@@ -635,5 +646,24 @@ class DiscoveryActivity : AppCompatActivity() {
         }
 
         override fun getItemCount() = photos.size
+    }
+
+    // GENDER & PREFERENCE MATCHER
+    private fun isMutuallyInterested(myGender: String, myPreference: String, theirGender: String, theirPreference: String): Boolean {
+
+        // Helper function to normalize "Men/Male" and "Women/Female" for easy comparison
+        fun matches(preference: String, gender: String): Boolean {
+            if (preference.equals("Everyone", ignoreCase = true)) return true
+            if (preference.equals("Men", ignoreCase = true) && gender.equals("Male", ignoreCase = true)) return true
+            if (preference.equals("Women", ignoreCase = true) && gender.equals("Female", ignoreCase = true)) return true
+
+            // Fallback just in case the database strictly uses matching words
+            return preference.equals(gender, ignoreCase = true)
+        }
+
+        val iLikeThem = matches(myPreference, theirGender)
+        val theyLikeMe = matches(theirPreference, myGender)
+
+        return iLikeThem && theyLikeMe
     }
 }
