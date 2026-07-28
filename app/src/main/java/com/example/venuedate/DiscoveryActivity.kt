@@ -583,7 +583,7 @@ class DiscoveryActivity : AppCompatActivity() {
         bottomSheetDialog.setContentView(R.layout.dialog_profile_details)
 
         // Bind UI Elements
-        val ivPic = bottomSheetDialog.findViewById<ImageView>(R.id.ivSheetProfilePic)
+        val vpPhotos = bottomSheetDialog.findViewById<androidx.viewpager2.widget.ViewPager2>(R.id.vpProfilePhotos)
         val tvNameAge = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetNameAge)
         val tvCity = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetCity)
         val tvOccupation = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetOccupation)
@@ -596,22 +596,44 @@ class DiscoveryActivity : AppCompatActivity() {
         tvOccupation?.text = "💼 ${if (user.occupation.isNotEmpty()) user.occupation else "Not specified"}"
         tvGenderInfo?.text = "👤 ${user.gender} | Looking for: ${user.interestedIn}"
 
-        // Format hobbies list beautifully
         tvHobbies?.text = if (user.hobbies.isNotEmpty()) {
             user.hobbies.joinToString(separator = " • ")
         } else {
             "No interests added."
         }
 
-        // Load profile picture
-        if (user.imageUrls.isNotEmpty() && ivPic != null) {
-            Glide.with(this)
-                .load(user.imageUrls[0])
-                .circleCrop()
-                .placeholder(android.R.drawable.ic_menu_gallery)
-                .into(ivPic)
+        // NEW: Load all images into the ViewPager adapter
+        if (user.imageUrls.isNotEmpty() && vpPhotos != null) {
+            vpPhotos.adapter = ProfilePhotosAdapter(user.imageUrls)
+        } else if (vpPhotos != null) {
+            // Fallback if they somehow have no photos
+            vpPhotos.visibility = View.GONE
         }
 
         bottomSheetDialog.show()
+    }
+
+    // Nested adapter to handle the swipable photo gallery in the Bottom Sheet
+    private inner class ProfilePhotosAdapter(private val photos: List<String>) :
+        RecyclerView.Adapter<ProfilePhotosAdapter.PhotoViewHolder>() {
+
+        inner class PhotoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val ivPhoto: ImageView = view.findViewById(R.id.ivPhoto)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
+            val view = layoutInflater.inflate(R.layout.item_profile_photo, parent, false)
+            return PhotoViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
+            Glide.with(this@DiscoveryActivity)
+                .load(photos[position])
+                .centerCrop()
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .into(holder.ivPhoto)
+        }
+
+        override fun getItemCount() = photos.size
     }
 }
