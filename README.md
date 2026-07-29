@@ -1,4 +1,4 @@
-# Morvo 
+# Morvo (temporary name)
 
 Morvo is a real-time, location-based social discovery and dating app for Android. It allows users to "Go Live" in their current vicinity, discover highly compatible profiles nearby, and engage in ephemeral 20-minute chat sessions before deciding to meet up in person.
 
