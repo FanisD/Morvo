@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "748605177897-3adue4mir465q297rd9hc2uikuj5jddp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.morvo",
+            "certificate_hash": "5cd1985ba8b90df8a4b6aa1545d425199eecb4ab"
+          }
+        },
+        {
           "client_id": "748605177897-hrl4e4oqi05bmfr7dfqedombtrpnsuf5.apps.googleusercontent.com",
           "client_type": 3
         }
