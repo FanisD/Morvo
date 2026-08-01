@@ -603,6 +603,7 @@ class DiscoveryActivity : AppCompatActivity() {
         val tvOccupation = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetOccupation)
         val tvGenderInfo = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetGenderInfo)
         val tvHobbies = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetHobbies)
+        val btnFlagProfile = bottomSheetDialog.findViewById<Button>(R.id.btnFlagProfile) // NEW
 
         // Populate Data
         tvNameAge?.text = "${user.firstName}, ${user.age}"
@@ -620,8 +621,26 @@ class DiscoveryActivity : AppCompatActivity() {
         if (user.imageUrls.isNotEmpty() && vpPhotos != null) {
             vpPhotos.adapter = ProfilePhotosAdapter(user.imageUrls)
         } else if (vpPhotos != null) {
-            // Fallback if they somehow have no photos
             vpPhotos.visibility = View.GONE
+        }
+
+        // NEW: Handle the Flag Profile Button
+        btnFlagProfile?.setOnClickListener {
+            val myUid = auth.currentUser?.uid ?: return@setOnClickListener
+
+            // Log the report in the database for you to manually review
+            val reportData = hashMapOf(
+                "reporter" to myUid,
+                "reportedUser" to user.uid,
+                "reason" to "Inappropriate Photo or Profile",
+                "timestamp" to System.currentTimeMillis(),
+                "reportedImages" to user.imageUrls // Saves their photos so you can see what was flagged
+            )
+
+            db.collection("reports").add(reportData).addOnSuccessListener {
+                Toast.makeText(this, "Profile flagged for review. Thank you.", Toast.LENGTH_SHORT).show()
+                bottomSheetDialog.dismiss() // Close the sheet
+            }
         }
 
         bottomSheetDialog.show()

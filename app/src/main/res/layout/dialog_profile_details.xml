@@ -86,4 +86,14 @@
         android:lineSpacingExtra="4dp"
         android:layout_marginBottom="16dp" />
 
+    <!-- FLAG PROFILE BUTTON -->
+    <Button
+        android:id="@+id/btnFlagProfile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🚩 Flag Inappropriate Profile or Photo"
+        android:textColor="#D32F2F"
+        style="?attr/borderlessButtonStyle"
+        android:layout_marginTop="8dp" />
+
 </LinearLayout>
