@@ -129,7 +129,16 @@ class ProfileSetupActivity : AppCompatActivity() {
             val hasMainPhoto = imageUris[0] != null || !currentUrls[0].isNullOrEmpty()
 
             if (name.isNotEmpty() && ageStr.isNotEmpty() && city.isNotEmpty() && hasMainPhoto) {
-                uploadAllPhotos(name, ageStr.toInt(), city)
+                // Convert the age string to a safe integer
+                val age = ageStr.toIntOrNull() ?: 0
+
+                // 18+ VALIDATION CHECK
+                if (age < 18) {
+                    Toast.makeText(this, "You must be at least 18 years old to use Morvo.", Toast.LENGTH_LONG).show()
+                    return@setOnClickListener // Stops the save process immediately
+                }
+
+                uploadAllPhotos(name, age, city)
             } else {
                 Toast.makeText(this, "Main photo, Name, Age, and City are required", Toast.LENGTH_SHORT).show()
             }

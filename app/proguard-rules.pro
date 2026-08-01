@@ -19,3 +19,14 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep annotation attributes
+-keepattributes *Annotation*
+
+# Keep Firebase and Google Play Services intact
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.firebase.**
+
+# Keep all Morvo classes and data models intact so Firestore can read them
+-keep class com.example.morvo.** { *; }
