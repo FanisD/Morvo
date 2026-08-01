@@ -239,6 +239,7 @@ class ProfileSetupActivity : AppCompatActivity() {
         // Strip out any nulls or blank slots
         val finalUrls = currentUrls.filterNotNull().filter { it.isNotEmpty() }
 
+        // REMOVED "email" FROM THIS MAP
         val userMap = hashMapOf(
             "uid" to uid,
             "firstName" to name,
@@ -249,19 +250,28 @@ class ProfileSetupActivity : AppCompatActivity() {
             "occupation" to findViewById<EditText>(R.id.etOccupation).text.toString().trim(),
             "vibeTag" to findViewById<Spinner>(R.id.spinnerVibe).selectedItem.toString(),
             "hobbies" to selectedHobbies,
-            "imageUrls" to finalUrls,
-            "email" to auth.currentUser?.email
+            "imageUrls" to finalUrls
         )
 
-        // SetOptions.merge() is CRITICAL here so we don't erase location logic or block lists!
+        // 1. Save the public data
         db.collection("users").document(uid).set(userMap, SetOptions.merge()).addOnSuccessListener {
-            if (isEditMode) {
-                Toast.makeText(this, "Profile Updated!", Toast.LENGTH_SHORT).show()
-                finish() // Close edit mode and go back to Radar
-            } else {
-                startActivity(Intent(this, DiscoveryActivity::class.java))
-                finish() // Standard onboarding forward progression
-            }
+
+            // 2. Save the private email securely
+            val privateData = hashMapOf("email" to auth.currentUser?.email)
+            db.collection("users").document(uid)
+                .collection("private").document("contact")
+                .set(privateData, SetOptions.merge())
+                .addOnSuccessListener {
+
+                    // Proceed as normal
+                    if (isEditMode) {
+                        Toast.makeText(this, "Profile Updated!", Toast.LENGTH_SHORT).show()
+                        finish() // Close edit mode and go back to Radar
+                    } else {
+                        startActivity(Intent(this, DiscoveryActivity::class.java))
+                        finish() // Standard onboarding forward progression
+                    }
+                }
         }
     }
 

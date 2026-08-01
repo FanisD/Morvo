@@ -245,40 +245,44 @@ class ChatActivity : AppCompatActivity() {
         val myUid = auth.currentUser?.uid ?: return
         val targetUid = partnerUid ?: return
 
-        // Fetch their email first so we can ban them if they hit 3 strikes
-        db.collection("users").document(targetUid).get().addOnSuccessListener { doc ->
-            val targetEmail = doc.getString("email") ?: "unknown"
+        // FETCH THE EMAIL FROM THE NEW PRIVATE SECURE PATH
+        db.collection("users").document(targetUid).collection("private").document("contact")
+            .get().addOnSuccessListener { doc ->
 
-            // 1. Log the report in the database for admins to see
-            val reportData = hashMapOf(
-                "reporter" to myUid,
-                "reportedUser" to targetUid,
-                "reason" to "Inappropriate Behavior",
-                "timestamp" to System.currentTimeMillis()
-            )
-            db.collection("reports").add(reportData)
+                val targetEmail = doc.getString("email") ?: "unknown"
 
-            // 2. Increment the bad user's strike counter
-            val userRef = db.collection("users").document(targetUid)
-            userRef.update("reportCount", FieldValue.increment(1)).addOnFailureListener {
-                // If they have 0 reports so far, initialize it to 1
-                userRef.set(hashMapOf("reportCount" to 1), SetOptions.merge())
-            }
+                // 1. Log the report in the database for admins to see
+                val reportData = hashMapOf(
+                    "reporter" to myUid,
+                    "reportedUser" to targetUid,
+                    "reason" to "Inappropriate Behavior",
+                    "timestamp" to System.currentTimeMillis()
+                )
+                db.collection("reports").add(reportData)
 
-            // 3. Check if they hit 3 strikes
-            userRef.get().addOnSuccessListener { strikeDoc ->
-                val currentReports = strikeDoc.getLong("reportCount") ?: 1L
-                if (currentReports >= 3L && targetEmail != "unknown") {
-                    // STRIKE 3: Add their email to the blacklist and vaporize their profile
-                    db.collection("banned_emails").document(targetEmail).set(hashMapOf("bannedAt" to System.currentTimeMillis()))
-                    userRef.delete()
+                // 2. Increment the bad user's strike counter (This stays on the public profile)
+                val userRef = db.collection("users").document(targetUid)
+                userRef.update("reportCount", FieldValue.increment(1)).addOnFailureListener {
+                    // If they have 0 reports so far, initialize it to 1
+                    userRef.set(hashMapOf("reportCount" to 1), SetOptions.merge())
                 }
 
-                Toast.makeText(this, "User reported. Thank you for keeping the community safe.", Toast.LENGTH_SHORT).show()
-                // Auto-block the user so they disappear immediately
-                blockUser()
+                // 3. Check if they hit 3 strikes
+                userRef.get().addOnSuccessListener { strikeDoc ->
+                    val currentReports = strikeDoc.getLong("reportCount") ?: 1L
+                    if (currentReports >= 3L && targetEmail != "unknown") {
+                        // STRIKE 3: Add their email to the blacklist and vaporize their profile
+                        db.collection("banned_emails").document(targetEmail).set(hashMapOf("bannedAt" to System.currentTimeMillis()))
+                        userRef.delete()
+                    }
+
+                    Toast.makeText(this, "User reported. Thank you for keeping the community safe.", Toast.LENGTH_SHORT).show()
+                    // Auto-block the user so they disappear immediately
+                    blockUser()
+                }
+            }.addOnFailureListener {
+                Toast.makeText(this, "Failed to fetch user data for report.", Toast.LENGTH_SHORT).show()
             }
-        }
     }
 
     private fun blockUser() {
