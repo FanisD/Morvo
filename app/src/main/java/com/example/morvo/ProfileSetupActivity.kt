@@ -129,7 +129,16 @@ class ProfileSetupActivity : AppCompatActivity() {
             val hasMainPhoto = imageUris[0] != null || !currentUrls[0].isNullOrEmpty()
 
             if (name.isNotEmpty() && ageStr.isNotEmpty() && city.isNotEmpty() && hasMainPhoto) {
-                uploadAllPhotos(name, ageStr.toInt(), city)
+                // Convert the age string to a safe integer
+                val age = ageStr.toIntOrNull() ?: 0
+
+                // 18+ VALIDATION CHECK
+                if (age < 18) {
+                    Toast.makeText(this, "You must be at least 18 years old to use Morvo.", Toast.LENGTH_LONG).show()
+                    return@setOnClickListener // Stops the save process immediately
+                }
+
+                uploadAllPhotos(name, age, city)
             } else {
                 Toast.makeText(this, "Main photo, Name, Age, and City are required", Toast.LENGTH_SHORT).show()
             }
@@ -239,6 +248,7 @@ class ProfileSetupActivity : AppCompatActivity() {
         // Strip out any nulls or blank slots
         val finalUrls = currentUrls.filterNotNull().filter { it.isNotEmpty() }
 
+        // REMOVED "email" FROM THIS MAP
         val userMap = hashMapOf(
             "uid" to uid,
             "firstName" to name,
@@ -249,19 +259,28 @@ class ProfileSetupActivity : AppCompatActivity() {
             "occupation" to findViewById<EditText>(R.id.etOccupation).text.toString().trim(),
             "vibeTag" to findViewById<Spinner>(R.id.spinnerVibe).selectedItem.toString(),
             "hobbies" to selectedHobbies,
-            "imageUrls" to finalUrls,
-            "email" to auth.currentUser?.email
+            "imageUrls" to finalUrls
         )
 
-        // SetOptions.merge() is CRITICAL here so we don't erase location logic or block lists!
+        // 1. Save the public data
         db.collection("users").document(uid).set(userMap, SetOptions.merge()).addOnSuccessListener {
-            if (isEditMode) {
-                Toast.makeText(this, "Profile Updated!", Toast.LENGTH_SHORT).show()
-                finish() // Close edit mode and go back to Radar
-            } else {
-                startActivity(Intent(this, DiscoveryActivity::class.java))
-                finish() // Standard onboarding forward progression
-            }
+
+            // 2. Save the private email securely
+            val privateData = hashMapOf("email" to auth.currentUser?.email)
+            db.collection("users").document(uid)
+                .collection("private").document("contact")
+                .set(privateData, SetOptions.merge())
+                .addOnSuccessListener {
+
+                    // Proceed as normal
+                    if (isEditMode) {
+                        Toast.makeText(this, "Profile Updated!", Toast.LENGTH_SHORT).show()
+                        finish() // Close edit mode and go back to Radar
+                    } else {
+                        startActivity(Intent(this, DiscoveryActivity::class.java))
+                        finish() // Standard onboarding forward progression
+                    }
+                }
         }
     }
 
