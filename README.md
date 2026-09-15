@@ -12,7 +12,7 @@ Morvo is a real-time, location-based social discovery and dating app for Android
 ## Tech Stack
 
 * **Platform:** Native Android (Kotlin)
-* **Architecture:** Minimum SDK 26, Target SDK 36
+* **Architecture:** Minimum SDK 26 and Target SDK 36
 * **Backend:** Firebase (Authentication, Firestore Database, Cloud Storage)
 * **Location:** Google Play Services Fused Location Provider
 * **UI/Images:** Material Design 3, Glide Image Loading
