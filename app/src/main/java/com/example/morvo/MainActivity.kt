@@ -43,11 +43,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Initialize Firebase App Check
-        FirebaseApp.initializeApp(this)
-        val firebaseAppCheck = FirebaseAppCheck.getInstance()
-        firebaseAppCheck.installAppCheckProviderFactory(
-            PlayIntegrityAppCheckProviderFactory.getInstance()
-        )
+        //FirebaseApp.initializeApp(this)
+        //val firebaseAppCheck = FirebaseAppCheck.getInstance()
+        //firebaseAppCheck.installAppCheckProviderFactory(
+         //   PlayIntegrityAppCheckProviderFactory.getInstance()
+       // )
         setContentView(R.layout.activity_main)
 
         auth = FirebaseAuth.getInstance()
