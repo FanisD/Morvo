@@ -23,14 +23,14 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_revert"
             app:tint="#FFFFFF"
-            android:contentDescription="Go Back" />
+            android:contentDescription="@string/back" />
 
         <TextView
             android:id="@+id/tvCountdown"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Time left: 20:00"
+            android:text="@string/chat_title"
             android:textColor="#FFFFFF"
             android:textStyle="bold" />
 
@@ -43,7 +43,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_menu_bullets"
             app:tint="#FFFFFF"
-            android:contentDescription="Options" />
+            android:contentDescription="@string/options" />
     </RelativeLayout>
 
     <!-- CHAT MESSAGES -->
@@ -72,7 +72,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Say hi..."
+            android:hint="@string/say_hi"
             android:background="@null"
             android:minHeight="48dp"
             android:paddingHorizontal="16dp"/>
@@ -83,7 +83,7 @@
             android:layout_height="48dp"
             android:src="@android:drawable/ic_menu_send"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Send Message" />
+            android:contentDescription="@string/send_message" />
     </LinearLayout>
 
 </RelativeLayout>

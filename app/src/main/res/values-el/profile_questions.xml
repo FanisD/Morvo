@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wizard_step">Βήμα %1$d από %2$d</string>
+    <string name="wizard_next">Επόμενο</string>
+    <string name="wizard_back">Πίσω</string>
+    <string name="answer_required">Απάντησε σε όλες τις ερωτήσεις αυτού του βήματος.</string>
+    <string name="hint_pick_5">Επίλεξε έως 5</string>
+    <string name="hint_pick_7">Επίλεξε έως 7</string>
+    <string name="pick_limit">Μπορείς να επιλέξεις έως %1$d.</string>
+    <string name="profile_highlights">Σχετικά</string>
+    <string name="highlight_kids">Παιδιά: %1$s</string>
+    <string name="highlights_empty">Δεν υπάρχουν απαντήσεις ακόμα.</string>
+    <string name="flag_profile">Αναφορά ακατάλληλου προφίλ ή φωτογραφίας</string>
+
+    <string name="section_relationship">Τι σχέση ψάχνεις</string>
+    <string name="section_style">Πώς λειτουργείς μέσα σε μια σχέση</string>
+    <string name="section_pets">Κατοικίδια</string>
+    <string name="section_family">Παιδιά και οικογένεια</string>
+    <string name="section_personality">Προσωπικότητα και αξίες</string>
+    <string name="section_therapy">Ψυχοθεραπεία</string>
+    <string name="section_money">Οικονομική νοοτροπία</string>
+    <string name="section_going_out">Έξοδος</string>
+    <string name="section_fitness">Γυμναστική</string>
+    <string name="section_free_time">Ελεύθερος χρόνος</string>
+
+    <string name="q_relationship_type">Τι είδους σχέση ψάχνεις;</string>
+    <string name="opt_rel_serious">Σοβαρή σχέση</string>
+    <string name="opt_rel_long_term">Μακροχρόνια σχέση με προοπτική γάμου</string>
+    <string name="opt_rel_marriage">Γάμο</string>
+    <string name="opt_rel_casual">Κάτι πιο χαλαρό</string>
+    <string name="opt_rel_dating">Dating χωρίς συγκεκριμένη προσδοκία</string>
+    <string name="opt_rel_unsure">Δεν είμαι σίγουρος/η ακόμα</string>
+
+    <string name="q_relationship_pace">Πόσο σύντομα θέλεις να εξελιχθεί μια σχέση;</string>
+    <string name="opt_pace_slow">Θέλω να γνωρίσω κάποιον αργά</string>
+    <string name="opt_pace_soon">Θέλω σχέση σχετικά σύντομα</string>
+    <string name="opt_pace_family">Θέλω να δημιουργήσω οικογένεια τα επόμενα χρόνια</string>
+
+    <string name="q_see_partner">Πόσο συχνά θέλεις να βλέπεις τον σύντροφό σου;</string>
+    <string name="opt_see_daily">Κάθε μέρα</string>
+    <string name="opt_see_3_5">3–5 φορές την εβδομάδα</string>
+    <string name="opt_see_1_2">1–2 φορές</string>
+    <string name="opt_see_depends">Ανάλογα</string>
+
+    <string name="q_daily_communication">Πόσο σημαντική είναι η επικοινωνία μέσα στην ημέρα;</string>
+    <string name="opt_comm_high">Πολύ</string>
+    <string name="opt_comm_medium">Μέτρια</string>
+    <string name="opt_comm_low">Δεν με ενδιαφέρει ιδιαίτερα</string>
+
+    <string name="q_conflict">Όταν υπάρχει διαφωνία:</string>
+    <string name="opt_conflict_now">Θέλω να το λύσω αμέσως</string>
+    <string name="opt_conflict_later">Προτιμώ να το συζητήσουμε ήρεμα αργότερα</string>
+
+    <string name="q_has_pet">Έχεις κατοικίδιο;</string>
+    <string name="q_wants_pet">Θέλεις κατοικίδιο στο μέλλον;</string>
+    <string name="q_date_pet">Θα ήσουν σε σχέση με κάποιον που έχει κατοικίδιο;</string>
+    <string name="opt_yes">Ναι</string>
+    <string name="opt_no">Όχι</string>
+    <string name="opt_maybe">Ίσως</string>
+
+    <string name="q_wants_kids">Θέλεις παιδιά;</string>
+    <string name="opt_kids_already">Έχω ήδη παιδιά</string>
+    <string name="q_kids_timing">Πότε περίπου θα ήθελες παιδιά;</string>
+    <string name="opt_kids_soon">Σύντομα</string>
+    <string name="opt_kids_2_5">Σε 2–5 χρόνια</string>
+    <string name="opt_kids_later">Αργότερα</string>
+    <string name="opt_undecided">Δεν το έχω αποφασίσει</string>
+
+    <string name="q_marriage">Γάμος;</string>
+    <string name="opt_marriage_important">Ναι, είναι σημαντικός για μένα</string>
+    <string name="opt_marriage_nice">Θα ήθελα αλλά δεν είναι απαραίτητος</string>
+    <string name="opt_marriage_no">Δεν με ενδιαφέρει</string>
+
+    <string name="q_family_importance">Πόσο σημαντικό είναι για σένα να δημιουργήσεις οικογένεια;</string>
+    <string name="opt_family_very">Πολύ</string>
+    <string name="opt_family_quite">Αρκετά</string>
+    <string name="opt_family_little">Λίγο</string>
+    <string name="opt_family_none">Καθόλου</string>
+
+    <string name="q_personality">Είσαι περισσότερο:</string>
+    <string name="slider_introvert">Introvert</string>
+    <string name="slider_extrovert">Extrovert</string>
+    <string name="slider_spontaneous">Spontaneous</string>
+    <string name="slider_planner">Planner</string>
+    <string name="slider_minimalist">Minimalist</string>
+    <string name="slider_materialistic">Materialistic</string>
+    <string name="slider_ambitious">Ambitious</string>
+    <string name="slider_laidback">Laid-back</string>
+    <string name="slider_traditional">Traditional</string>
+    <string name="slider_modern">Modern</string>
+
+    <string name="q_values">Τι θεωρείς σημαντικό σε μια σχέση;</string>
+    <string name="opt_value_trust">Εμπιστοσύνη</string>
+    <string name="opt_value_communication">Επικοινωνία</string>
+    <string name="opt_value_humor">Χιούμορ</string>
+    <string name="opt_value_respect">Σεβασμός</string>
+    <string name="opt_value_sexual">Σεξουαλική συμβατότητα</string>
+    <string name="opt_value_money">Οικονομική σταθερότητα</string>
+    <string name="opt_value_shared">Κοινές αξίες</string>
+    <string name="opt_value_adventure">Περιπέτεια</string>
+    <string name="opt_value_family">Οικογένεια</string>
+    <string name="opt_value_space">Προσωπικός χώρος</string>
+    <string name="opt_value_ambition">Φιλοδοξία</string>
+    <string name="opt_value_companionship">Συντροφικότητα</string>
+
+    <string name="q_therapy">Κάνεις ή έχεις κάνει ψυχοθεραπεία;</string>
+    <string name="opt_therapy_current">Ναι, κάνω αυτή την περίοδο</string>
+    <string name="opt_therapy_past">Ναι, έχω κάνει στο παρελθόν</string>
+    <string name="opt_therapy_open">Όχι, αλλά θα ήμουν ανοιχτός/ή</string>
+    <string name="opt_therapy_no">Όχι και δεν με ενδιαφέρει</string>
+
+    <string name="q_money_have">Όταν έχεις χρήματα, τι προτιμάς;</string>
+    <string name="opt_money_save">Να αποταμιεύω</string>
+    <string name="opt_money_invest">Να επενδύω</string>
+    <string name="opt_money_travel">Να ταξιδεύω</string>
+    <string name="opt_money_buy">Να αγοράζω πράγματα</string>
+    <string name="opt_money_experiences">Να απολαμβάνω εμπειρίες</string>
+
+    <string name="q_money_relationship">Πώς βλέπεις τα οικονομικά μέσα σε μια σχέση;</string>
+    <string name="opt_money_split">Όλα μισά-μισά</string>
+    <string name="opt_money_income">Ανάλογα με το εισόδημα</string>
+    <string name="opt_money_shared">Κοινά οικονομικά</string>
+    <string name="opt_money_depends">Κάθε ζευγάρι διαφορετικά</string>
+
+    <string name="q_money_self">Πώς θα περιέγραφες τον εαυτό σου οικονομικά;</string>
+    <string name="opt_self_saver">Πολύ αποταμιευτικός/ή</string>
+    <string name="opt_self_careful">Προσεκτικός/ή</string>
+    <string name="opt_self_balanced">Ισορροπημένος/η</string>
+    <string name="opt_self_enjoy">Μου αρέσει να απολαμβάνω τα χρήματά μου</string>
+    <string name="opt_self_spontaneous">Αυθόρμητος/η με τα χρήματα</string>
+
+    <string name="q_going_out_frequency">Πόσο συχνά σου αρέσει να βγαίνεις;</string>
+    <string name="opt_out_often">Βγαίνω πολύ συχνά</string>
+    <string name="opt_out_2_3">2–3 φορές την εβδομάδα</string>
+    <string name="opt_out_once">Περίπου 1 φορά την εβδομάδα</string>
+    <string name="opt_out_rarely">Βγαίνω σπάνια</string>
+
+    <string name="q_going_out_activities">Τι σου αρέσει να κάνεις όταν βγαίνεις;</string>
+    <string name="opt_out_food">Φαγητό</string>
+    <string name="opt_out_bars">Bars</string>
+    <string name="opt_out_bouzoukia">Μπουζούκια</string>
+    <string name="opt_out_clubs">Clubs</string>
+    <string name="opt_out_coffee">Καφέ</string>
+    <string name="opt_out_live">Live μουσική</string>
+    <string name="opt_out_theater">Θέατρο</string>
+    <string name="opt_out_cinema">Σινεμά</string>
+    <string name="opt_out_concerts">Συναυλίες</string>
+    <string name="opt_out_walks">Βόλτες στο κέντρο της πόλης</string>
+
+    <string name="q_fitness">Πόσο σημαντική είναι η γυμναστική στη ζωή σου;</string>
+    <string name="opt_fit_none">Καθόλου</string>
+    <string name="opt_fit_little">Λίγο</string>
+    <string name="opt_fit_moderate">Μέτρια</string>
+    <string name="opt_fit_high">Πολύ</string>
+    <string name="opt_fit_central">Είναι μεγάλο κομμάτι της ζωής μου</string>
+
+    <string name="q_free_time">Τι σου αρέσει να κάνεις στον ελεύθερο χρόνο σου;</string>
+    <string name="opt_free_travel">Ταξίδια</string>
+    <string name="opt_free_beach">Παραλία</string>
+    <string name="opt_free_hiking">Πεζοπορία</string>
+    <string name="opt_free_gym">Γυμναστήριο</string>
+    <string name="opt_free_cooking">Μαγειρική</string>
+    <string name="opt_free_gaming">Gaming</string>
+    <string name="opt_free_books">Βιβλία</string>
+    <string name="opt_free_museums">Μουσεία</string>
+    <string name="opt_free_art">Τέχνη</string>
+    <string name="opt_free_photo">Φωτογραφία</string>
+    <string name="opt_free_dance">Χορός</string>
+    <string name="opt_free_series">Netflix / σειρές</string>
+    <string name="opt_free_cinema">Σινεμά</string>
+    <string name="opt_free_music">Μουσική</string>
+</resources>

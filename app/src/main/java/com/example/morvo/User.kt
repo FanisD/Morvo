@@ -11,14 +11,12 @@ data class User(
     val interestedIn: String = "",
     val city: String = "",
     val occupation: String = "",
-    val vibeTag: String = "",
-    val hobbies: List<String> = emptyList(),
     val imageUrls: List<String> = emptyList(),
+    val profileAnswers: Map<String, Any> = emptyMap(),
     val email: String = "",
     val currentVenueId: String? = null,
     val lastLat: Double = 0.0,
     val lastLng: Double = 0.0,
     val availableUntil: Long = 0L,
-    val isCompatibilityModeActive: Boolean = false,
     val blockedUsers: List<String> = emptyList()
 )

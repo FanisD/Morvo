@@ -11,7 +11,7 @@ import com.bumptech.glide.Glide
 
 class NearbyAdapter(
     private var users: List<User>,
-    private var myHobbies: List<String> = emptyList(),
+    private var me: User = User(),
     private val onProfileClick: (User) -> Unit,
     private val onIntentClick: (User) -> Unit
 ) : RecyclerView.Adapter<NearbyAdapter.ViewHolder>() {
@@ -37,38 +37,28 @@ class NearbyAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val user = users[position]
         holder.tvName.text = "${user.firstName}, ${user.age}"
-        holder.tvVibe.text = user.vibeTag
+        holder.tvVibe.text = user.city
 
-        // 1. Evaluate Interaction States
         val hasInbound = inboundTaps.contains(user.uid)
         val hasOutbound = outboundTaps.contains(user.uid)
 
-        // RESET DEFAULT STATES (Crucial for Recyclerview so scrolling doesn't mix up UI)
         holder.btnTap.visibility = View.VISIBLE
-        holder.btnTap.text = "Tap"
+        holder.btnTap.text = holder.itemView.context.getString(R.string.tap)
         holder.tvInterestStatus.visibility = View.GONE
-        holder.tvBadge.visibility = View.GONE
+        val percent = CompatibilityCalculator.percent(me, user)
+        holder.tvBadge.visibility = View.VISIBLE
+        holder.tvBadge.text = holder.itemView.context.getString(R.string.compatibility_percent, percent)
 
         if (hasInbound) {
-            holder.tvInterestStatus.text = "✨ Interested in You!"
+            holder.tvInterestStatus.text = holder.itemView.context.getString(R.string.interested_in_you)
             holder.tvInterestStatus.visibility = View.VISIBLE
-            holder.btnTap.text = "Match" // Changes button text since tapping them back creates a match
+            holder.btnTap.text = holder.itemView.context.getString(R.string.match_button)
         } else if (hasOutbound) {
-            holder.tvInterestStatus.text = "⏳ You are interested"
+            holder.tvInterestStatus.text = holder.itemView.context.getString(R.string.you_are_interested)
             holder.tvInterestStatus.visibility = View.VISIBLE
-            holder.btnTap.visibility = View.GONE // Hides the button so you can't double-tap
+            holder.btnTap.visibility = View.GONE
         }
 
-        // 2. Evaluate Compatibility (Only show if there isn't an overriding Interest status)
-        if (!hasInbound && !hasOutbound && myHobbies.isNotEmpty() && user.isCompatibilityModeActive) {
-            val sharedCount = user.hobbies.intersect(myHobbies.toSet()).size
-            if (sharedCount >= 7) {
-                holder.tvBadge.text = "🔥 Top Match ($sharedCount Shared)"
-                holder.tvBadge.visibility = View.VISIBLE
-            }
-        }
-
-        // 3. Load Image
         if (user.imageUrls.isNotEmpty()) {
             Glide.with(holder.itemView.context)
                 .load(user.imageUrls[0])
@@ -89,8 +79,8 @@ class NearbyAdapter(
         notifyDataSetChanged()
     }
 
-    fun updateMyHobbies(hobbies: List<String>) {
-        myHobbies = hobbies
+    fun updateMe(user: User) {
+        me = user
         notifyDataSetChanged()
     }
 

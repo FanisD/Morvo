@@ -49,15 +49,23 @@ class InboxAdapter(
 
         // 2. Fetch/Handle live room time limits
         db.collection("matches").document(matchId).get().addOnSuccessListener { doc ->
-            val expiresAt = doc.getLong("expiresAt") ?: 0L
-            val remaining = expiresAt - System.currentTimeMillis()
-
-            if (remaining > 0) {
-                val mins = (remaining / 1000) / 60
-                holder.tvTimer.text = "Closes in: ${mins}m"
+            val context = holder.itemView.context
+            val type = doc.getString("type")
+            val expiresAt = doc.getLong("expiresAt")
+            val classic = type == "classic" || expiresAt == null
+            if (classic) {
+                holder.tvTimer.text = context.getString(R.string.inbox_classic)
+                holder.btnOpen.isEnabled = true
             } else {
-                holder.tvTimer.text = "Expired"
-                holder.btnOpen.isEnabled = false
+                val remaining = expiresAt - System.currentTimeMillis()
+                if (remaining > 0) {
+                    val mins = ((remaining / 1000) / 60).toInt()
+                    holder.tvTimer.text = context.getString(R.string.inbox_closes_in, mins)
+                    holder.btnOpen.isEnabled = true
+                } else {
+                    holder.tvTimer.text = context.getString(R.string.inbox_expired)
+                    holder.btnOpen.isEnabled = false
+                }
             }
         }
 

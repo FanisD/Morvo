@@ -16,7 +16,16 @@
         android:theme="@style/Theme.VenueDate">
         <activity
             android:name=".DiscoveryActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
+        <activity
+            android:name=".ClassicDiscoverActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
+        <activity
+            android:name=".MeActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
         <activity
             android:name=".ProfileSetupActivity"
             android:exported="false" />
@@ -36,7 +45,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MatchesInboxActivity" android:exported="false" />
+        <activity
+            android:name=".MatchesInboxActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
     </application>
 
 </manifest>

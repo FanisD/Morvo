@@ -1,14 +1,15 @@
 package com.example.morvo
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import android.view.View
 import android.widget.ImageButton
+import android.widget.TextView
 
-class MatchesInboxActivity : AppCompatActivity() {
+class MatchesInboxActivity : MorvoActivity() {
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
@@ -19,6 +20,7 @@ class MatchesInboxActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_matches_inbox)
         findViewById<ImageButton>(R.id.btnBack).setOnClickListener { finish() }
+        AppNav.bind(this, R.id.nav_inbox)
 
         val myUid = auth.currentUser?.uid ?: return
 
@@ -39,20 +41,22 @@ class MatchesInboxActivity : AppCompatActivity() {
                 val loadedPairs = mutableListOf<Pair<String, String>>()
 
                 snapshots.forEach { doc ->
-                    val expiresAt = doc.getLong("expiresAt") ?: 0L
-
-                    // Only show chats that still have time left on the clock!
-                    if (expiresAt > System.currentTimeMillis()) {
-                        val matchId = doc.id
+                    val type = doc.getString("type")
+                    val expiresAt = doc.getLong("expiresAt")
+                    val stillOpen = type == "classic" || expiresAt == null || expiresAt > System.currentTimeMillis()
+                    if (stillOpen) {
                         val users = doc.get("users") as? List<String>
                         val partnerUid = users?.firstOrNull { it != myUid }
-
                         if (partnerUid != null) {
-                            loadedPairs.add(Pair(matchId, partnerUid))
+                            loadedPairs.add(Pair(doc.id, partnerUid))
                         }
                     }
                 }
                 adapter.updateList(loadedPairs)
+                findViewById<TextView>(R.id.tvInboxEmpty).visibility =
+                    if (loadedPairs.isEmpty()) View.VISIBLE else View.GONE
+                findViewById<RecyclerView>(R.id.rvInbox).visibility =
+                    if (loadedPairs.isEmpty()) View.GONE else View.VISIBLE
             }
     }
 }

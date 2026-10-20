@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,7 +20,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 
-class ChatActivity : AppCompatActivity() {
+class ChatActivity : MorvoActivity() {
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
@@ -86,9 +85,9 @@ class ChatActivity : AppCompatActivity() {
         // 2. Options Menu (3-dot/gear icon) Action
         btnOptions.setOnClickListener { view ->
             val popup = PopupMenu(this, view)
-            popup.menu.add(0, 1, 0, "Report User")
-            popup.menu.add(0, 2, 0, "Block User")
-            popup.menu.add(0, 3, 0, "End Match") // NEW: End Match Option
+            popup.menu.add(0, 1, 0, getString(R.string.report_user))
+            popup.menu.add(0, 2, 0, getString(R.string.block_user))
+            popup.menu.add(0, 3, 0, getString(R.string.end_match))
 
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
@@ -126,31 +125,43 @@ class ChatActivity : AppCompatActivity() {
         db.collection("interests").document(matchId).collection("taps").document(target).delete()
 
         // 4. Notify and exit
-        Toast.makeText(this, "Match ended.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, R.string.match_ended, Toast.LENGTH_SHORT).show()
         finish() // Kicks you out of the chat screen
     }
 
     private fun startTimer(tv: TextView) {
         matchId?.let { id ->
             db.collection("matches").document(id).get().addOnSuccessListener { doc ->
-                val expiresAt = doc.getLong("expiresAt") ?: 0L
-                val remaining = expiresAt - System.currentTimeMillis()
+                val type = doc.getString("type")
+                val expiresAt = doc.getLong("expiresAt")
+                if (type == "classic" || expiresAt == null) {
+                    tv.text = getString(R.string.chat_title)
+                    findViewById<ImageButton>(R.id.btnSend).isEnabled = true
+                    partnerUid?.let { uid ->
+                        db.collection("users").document(uid).get().addOnSuccessListener { userDoc ->
+                            val name = userDoc.getString("firstName")
+                            if (!name.isNullOrBlank()) tv.text = name
+                        }
+                    }
+                    return@addOnSuccessListener
+                }
 
+                val remaining = expiresAt - System.currentTimeMillis()
                 if (remaining > 0) {
                     object : CountDownTimer(remaining, 1000) {
                         override fun onTick(millisUntilFinished: Long) {
-                            val mins = (millisUntilFinished / 1000) / 60
-                            val secs = (millisUntilFinished / 1000) % 60
-                            tv.text = String.format("Time left: %02d:%02d", mins, secs)
+                            val mins = ((millisUntilFinished / 1000) / 60).toInt()
+                            val secs = ((millisUntilFinished / 1000) % 60).toInt()
+                            tv.text = getString(R.string.time_left, mins, secs)
                         }
 
                         override fun onFinish() {
-                            tv.text = "Match Expired"
+                            tv.text = getString(R.string.match_expired)
                             findViewById<ImageButton>(R.id.btnSend).isEnabled = false
                         }
                     }.start()
                 } else {
-                    tv.text = "Match Expired"
+                    tv.text = getString(R.string.match_expired)
                     findViewById<ImageButton>(R.id.btnSend).isEnabled = false
                 }
             }
@@ -218,7 +229,7 @@ class ChatActivity : AppCompatActivity() {
 
         val builder = NotificationCompat.Builder(this, chatChannelId)
             .setSmallIcon(android.R.drawable.stat_notify_chat)
-            .setContentTitle("New Message")
+            .setContentTitle(getString(R.string.new_message))
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
@@ -230,7 +241,7 @@ class ChatActivity : AppCompatActivity() {
 
     private fun createChatNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Chat Messages"
+            val name = getString(R.string.chat_channel)
             val channel = NotificationChannel(chatChannelId, name, NotificationManager.IMPORTANCE_HIGH)
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
@@ -276,12 +287,12 @@ class ChatActivity : AppCompatActivity() {
                         userRef.delete()
                     }
 
-                    Toast.makeText(this, "User reported. Thank you for keeping the community safe.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.report_thanks, Toast.LENGTH_SHORT).show()
                     // Auto-block the user so they disappear immediately
                     blockUser()
                 }
             }.addOnFailureListener {
-                Toast.makeText(this, "Failed to fetch user data for report.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.report_failed, Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -303,7 +314,7 @@ class ChatActivity : AppCompatActivity() {
         db.collection("users").document(myUid)
             .update("blockedUsers", FieldValue.arrayUnion(target))
             .addOnSuccessListener {
-                Toast.makeText(this, "User blocked. Match terminated.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, R.string.user_blocked, Toast.LENGTH_LONG).show()
                 finish() // Kicks you out of the chat screen and back to safety
             }
     }

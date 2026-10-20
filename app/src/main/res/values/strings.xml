@@ -1,4 +1,130 @@
 <resources>
     <string name="app_name">Morvo</string>
     <string name="default_web_client_id">748605177897-hrl4e4oqi05bmfr7dfqedombtrpnsuf5.apps.googleusercontent.com</string>
+
+    <string name="brand_title">Morvo</string>
+    <string name="tagline">Find your spark nearby.</string>
+    <string name="hint_email">Email Address</string>
+    <string name="hint_password">Password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="or_divider"> OR </string>
+    <string name="create_account">New here? Create Account</string>
+
+    <string name="google_sign_in_failed">Google Sign-In Failed</string>
+    <string name="verify_email_first">Please verify your email first</string>
+    <string name="login_failed">Login Failed: %1$s</string>
+    <string name="enter_email_password">Enter email and password</string>
+    <string name="verification_email_sent">Verification email sent!</string>
+    <string name="auth_error">Error: %1$s</string>
+    <string name="password_too_short">Password must be at least 6 characters</string>
+    <string name="account_banned">This account has been permanently banned.</string>
+    <string name="network_profile_error">Network Error: Could not load profile</string>
+
+    <string name="nav_classic">Classic</string>
+    <string name="nav_nearby">Nearby</string>
+    <string name="nav_inbox">Inbox</string>
+    <string name="nav_me">Me</string>
+
+    <string name="live_radar">Live Radar</string>
+    <string name="open_inbox">Open Matches Inbox</string>
+    <string name="go_live">Go Live (Visible for 20m)</string>
+    <string name="compatibility_match">Compatibility Match</string>
+    <string name="compatibility_active">Compatibility Matching Mode (Active)</string>
+    <string name="compatibility_locked">Compatibility Mode Locked (%1$d/10 Hobbies Picked)</string>
+    <string name="search_range">Search Range: %1$dm</string>
+    <string name="nearby_profiles">Nearby Profiles</string>
+    <string name="action_profile">Profile</string>
+    <string name="action_logout">Log Out</string>
+    <string name="interest_sent">Interest sent to %1$s!</string>
+    <string name="location_hidden">Location hidden</string>
+    <string name="occupation_line">Occupation: %1$s</string>
+    <string name="not_specified">Not specified</string>
+    <string name="looking_for_line">%1$s | Looking for: %2$s</string>
+    <string name="profile_flagged">Profile flagged for review. Thank you.</string>
+    <string name="tap">Tap</string>
+    <string name="match_button">Match</string>
+    <string name="interested_in_you">Interested in You!</string>
+    <string name="you_are_interested">You are interested</string>
+    <string name="top_match">Top Match (%1$d Shared)</string>
+
+    <string name="classic_title">Classic</string>
+    <string name="classic_empty">No more people match your filters right now.</string>
+    <string name="classic_loading">Looking for people…</string>
+    <string name="pass">Pass</string>
+    <string name="like">Like</string>
+    <string name="compatibility_percent">%1$d%%</string>
+    <string name="its_a_match">It\'s a match</string>
+    <string name="classic_match_message">You and %1$s liked each other. Chat stays open.</string>
+    <string name="start_chat">Start chat</string>
+    <string name="keep_browsing">Keep browsing</string>
+    <string name="swipe_failed">Could not save that. Try again.</string>
+
+    <string name="inbox_title">Messages</string>
+    <string name="inbox_empty">No matches yet.</string>
+    <string name="inbox_classic">Match</string>
+    <string name="inbox_closes_in">Closes in: %1$dm</string>
+    <string name="inbox_expired">Expired</string>
+    <string name="open_chat">Chat</string>
+    <string name="back">Back</string>
+
+    <string name="chat_title">Chat</string>
+    <string name="time_left">Time left: %1$02d:%2$02d</string>
+    <string name="match_expired">Match Expired</string>
+    <string name="say_hi">Say hi…</string>
+    <string name="send_message">Send Message</string>
+    <string name="options">Options</string>
+    <string name="report_user">Report User</string>
+    <string name="block_user">Block User</string>
+    <string name="end_match">End Match</string>
+    <string name="match_ended">Match ended.</string>
+    <string name="new_message">New Message</string>
+    <string name="chat_channel">Chat Messages</string>
+    <string name="report_thanks">User reported. Thank you for keeping the community safe.</string>
+    <string name="report_failed">Failed to fetch user data for report.</string>
+    <string name="user_blocked">User blocked. Match terminated.</string>
+
+    <string name="me_title">Me</string>
+    <string name="language">Language</string>
+    <string name="language_english">English</string>
+    <string name="language_greek">Greek</string>
+    <string name="who_i_want">Who I want to see</string>
+    <string name="age_min">Minimum age</string>
+    <string name="age_max">Maximum age</string>
+    <string name="save_filters">Save filters</string>
+    <string name="filters_saved">Filters saved</string>
+    <string name="filters_invalid">Enter an age range from 18 to 99.</string>
+    <string name="edit_profile">Edit profile</string>
+    <string name="blocked_users">Blocked users</string>
+
+    <string name="build_profile">Build Your Profile</string>
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="hint_first_name">First Name</string>
+    <string name="hint_age">Age</string>
+    <string name="i_am">I am a:</string>
+    <string name="interested_in_meeting">Interested in meeting:</string>
+    <string name="hint_city">Current City</string>
+    <string name="hint_job">Job or Studies</string>
+    <string name="select_vibe">Select Your Vibe</string>
+    <string name="select_interests">Select Interests (%1$d/10)</string>
+    <string name="unlock_compatibility">Pick 10 to unlock Compatibility Mode!</string>
+    <string name="save_and_enter">Save and Enter</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="manage_blocked">Manage Blocked Users</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="age_gate">You must be at least 18 years old to use Morvo.</string>
+    <string name="profile_required">Main photo, Name, Age, and City are required</string>
+    <string name="profile_updated">Profile Updated!</string>
+    <string name="delete_account_title">Delete Account</string>
+    <string name="delete_account_message">Are you sure? This action is permanent and cannot be undone.</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="deleting_account">Deleting account and cleaning data…</string>
+
+    <string name="no_blocked">You have no blocked users.</string>
+    <string name="blocked_load_error">Network error: Could not load blocked users.</string>
+    <string name="profile_load_error">Network error: Could not load profile.</string>
+    <string name="user_unblocked">User unblocked</string>
+    <string name="unblock_failed">Failed to unblock user. Try again.</string>
+    <string name="unblock">Unblock</string>
+    <string name="blocked_title">Blocked Users</string>
 </resources>

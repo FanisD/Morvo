@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:text="Live Radar"
+            android:text="@string/live_radar"
             android:textColor="@color/brand_primary"
             android:textSize="32sp"
             android:textStyle="bold"
@@ -41,7 +41,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@android:drawable/sym_action_chat"
                 app:tint="@color/text_secondary"
-                android:contentDescription="Open Matches Inbox" />
+                android:contentDescription="@string/open_inbox" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/btnProfileMenu"
@@ -83,28 +83,11 @@
                 android:id="@+id/switchAmHere"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Go Live (Visible for 20m)"
+                android:text="@string/go_live"
                 android:textColor="@color/text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:thumbTint="@color/brand_primary" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="12dp"
-                android:background="#EEEEEE" />
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchCompatibilityMode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Compatibility Match"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:enabled="false"
-                app:thumbTint="@color/brand_accent" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -128,7 +111,7 @@
                 android:id="@+id/tvRangeLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Search Range: 100m"
+                android:text="@string/search_range"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -151,7 +134,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Nearby Profiles"
+        android:text="@string/nearby_profiles"
         android:textColor="@color/text_primary"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -160,9 +143,12 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvNearby"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:clipToPadding="false"
         android:paddingBottom="24dp"
         android:scrollbars="none" />
+
+    <include layout="@layout/include_bottom_nav" />
 
 </LinearLayout>
