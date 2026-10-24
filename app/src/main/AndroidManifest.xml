@@ -15,17 +15,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.VenueDate">
         <activity
-            android:name=".DiscoveryActivity"
+            android:name=".HomeActivity"
             android:exported="false"
-            android:launchMode="singleTop" />
-        <activity
-            android:name=".ClassicDiscoverActivity"
-            android:exported="false"
-            android:launchMode="singleTop" />
-        <activity
-            android:name=".MeActivity"
-            android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.VenueDate.Home" />
         <activity
             android:name=".ProfileSetupActivity"
             android:exported="false" />
@@ -45,10 +38,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".MatchesInboxActivity"
-            android:exported="false"
-            android:launchMode="singleTop" />
     </application>
 
 </manifest>

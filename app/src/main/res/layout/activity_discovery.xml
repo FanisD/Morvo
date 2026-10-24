@@ -5,65 +5,18 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/background_light"
-    android:paddingTop="32dp"
-    android:paddingHorizontal="24dp"
-    android:fitsSystemWindows="true">
+    android:paddingTop="24dp"
+    android:paddingHorizontal="24dp">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:text="@string/live_radar"
-            android:textColor="@color/brand_primary"
-            android:textSize="32sp"
-            android:textStyle="bold"
-            android:letterSpacing="-0.02" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <ImageButton
-                android:id="@+id/btnInbox"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginEnd="16dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/sym_action_chat"
-                app:tint="@color/text_secondary"
-                android:contentDescription="@string/open_inbox" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnProfileMenu"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                app:cardCornerRadius="21dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="2dp"
-                app:strokeColor="@color/brand_primary"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/ivUserProfilePic"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@android:drawable/ic_menu_gallery" />
-            </com.google.android.material.card.MaterialCardView>
-        </LinearLayout>
-    </RelativeLayout>
+        android:layout_marginBottom="24dp"
+        android:text="@string/live_radar"
+        android:textColor="@color/brand_primary"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:letterSpacing="-0.02" />
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
@@ -148,7 +101,5 @@
         android:clipToPadding="false"
         android:paddingBottom="24dp"
         android:scrollbars="none" />
-
-    <include layout="@layout/include_bottom_nav" />
 
 </LinearLayout>

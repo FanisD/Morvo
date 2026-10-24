@@ -402,7 +402,7 @@ class ProfileSetupActivity : MorvoActivity() {
                         Toast.makeText(this, R.string.profile_updated, Toast.LENGTH_SHORT).show()
                         finish()
                     } else {
-                        startActivity(Intent(this, ClassicDiscoverActivity::class.java))
+                        startActivity(Intent(this, HomeActivity::class.java))
                         finish() // Standard onboarding forward progression
                     }
                 }

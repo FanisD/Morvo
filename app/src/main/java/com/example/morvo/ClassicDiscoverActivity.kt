@@ -2,18 +2,21 @@ package com.example.morvo
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
-class ClassicDiscoverActivity : MorvoActivity() {
+class ClassicDiscoverFragment : Fragment() {
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
@@ -22,14 +25,16 @@ class ClassicDiscoverActivity : MorvoActivity() {
     private var deck: List<User> = emptyList()
     private var busy = false
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_classic_discover)
-        AppNav.bind(this, R.id.nav_classic)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        return inflater.inflate(R.layout.activity_classic_discover, container, false)
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         findViewById<MaterialButton>(R.id.btnPass).setOnClickListener { currentUser()?.let { pass(it) } }
         findViewById<MaterialButton>(R.id.btnLike).setOnClickListener { currentUser()?.let { like(it) } }
     }
+
+    private fun <T : View> findViewById(id: Int): T = requireView().findViewById(id)
 
     override fun onResume() {
         super.onResume()
@@ -143,7 +148,7 @@ class ClassicDiscoverActivity : MorvoActivity() {
             .addOnSuccessListener { advance() }
             .addOnFailureListener {
                 setBusy(false)
-                Toast.makeText(this, R.string.swipe_failed, Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.swipe_failed, Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -163,7 +168,7 @@ class ClassicDiscoverActivity : MorvoActivity() {
             }
             .addOnFailureListener {
                 setBusy(false)
-                Toast.makeText(this, R.string.swipe_failed, Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.swipe_failed, Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -177,11 +182,11 @@ class ClassicDiscoverActivity : MorvoActivity() {
         )
         db.collection("matches").document(matchId).set(data, SetOptions.merge())
             .addOnSuccessListener {
-                AlertDialog.Builder(this)
+                AlertDialog.Builder(requireContext())
                     .setTitle(R.string.its_a_match)
                     .setMessage(getString(R.string.classic_match_message, person.firstName))
                     .setPositiveButton(R.string.start_chat) { _, _ ->
-                        startActivity(Intent(this, ChatActivity::class.java).putExtra("MATCH_ID", matchId))
+                        startActivity(Intent(requireContext(), ChatActivity::class.java).putExtra("MATCH_ID", matchId))
                         advance()
                     }
                     .setNegativeButton(R.string.keep_browsing) { _, _ -> advance() }
@@ -190,7 +195,7 @@ class ClassicDiscoverActivity : MorvoActivity() {
             }
             .addOnFailureListener {
                 setBusy(false)
-                Toast.makeText(this, R.string.swipe_failed, Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.swipe_failed, Toast.LENGTH_SHORT).show()
             }
     }
 

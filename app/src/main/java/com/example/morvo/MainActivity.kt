@@ -151,7 +151,7 @@ class MainActivity : MorvoActivity() {
                 // 2. Normal profile check if they are not banned
                 db.collection("users").document(uid).get().addOnSuccessListener { doc ->
                     if (doc.exists() && !doc.getString("firstName").isNullOrEmpty()) {
-                        startActivity(Intent(this, ClassicDiscoverActivity::class.java))
+                        startActivity(Intent(this, HomeActivity::class.java))
                         finish()
                     } else {
                         startActivity(Intent(this, ProfileSetupActivity::class.java))

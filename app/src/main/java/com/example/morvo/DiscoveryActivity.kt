@@ -13,16 +13,17 @@ import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.slider.Slider
@@ -32,7 +33,7 @@ import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
-class DiscoveryActivity : MorvoActivity() {
+class DiscoveryFragment : Fragment() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val db = FirebaseFirestore.getInstance()
@@ -67,11 +68,12 @@ class DiscoveryActivity : MorvoActivity() {
         startLiveStatus()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_discovery)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        return inflater.inflate(R.layout.activity_discovery, container, false)
+    }
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
         createNotificationChannel()
 
         adapter = NearbyAdapter(
@@ -81,13 +83,12 @@ class DiscoveryActivity : MorvoActivity() {
             onIntentClick = { selectedUser -> sendInterest(selectedUser) }
         )
         val rv = findViewById<RecyclerView>(R.id.rvNearby)
-        rv.layoutManager = LinearLayoutManager(this)
+        rv.layoutManager = LinearLayoutManager(requireContext())
         rv.adapter = adapter
 
         val slider = findViewById<Slider>(R.id.rangeSlider)
         val tvRange = findViewById<TextView>(R.id.tvRangeLabel)
 
-        // Map slider positions (0, 1, 2) to exact distances (50, 100, 200)
         val rangeOptions = intArrayOf(50, 100, 200)
 
         fun showRange(value: Float) {
@@ -100,41 +101,12 @@ class DiscoveryActivity : MorvoActivity() {
             if (isChecked) checkLocationPermission() else stopLiveStatus()
         }
 
-        findViewById<ImageButton>(R.id.btnInbox).setOnClickListener {
-            startActivity(Intent(this, MatchesInboxActivity::class.java))
-        }
-        AppNav.bind(this, R.id.nav_nearby)
-
-        // Start real-time environment listeners
         listenForMatches()
         listenForTaps()
         listenForGlobalMessages()
-
-        val btnProfileMenu = findViewById<View>(R.id.btnProfileMenu)
-        btnProfileMenu.setOnClickListener { view ->
-            val popup = PopupMenu(this, view)
-            popup.menuInflater.inflate(R.menu.profile_menu, popup.menu)
-            popup.setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    R.id.action_profile -> {
-                        val intent = Intent(this, ProfileSetupActivity::class.java)
-                        intent.putExtra("EDIT_MODE", true)
-                        startActivity(intent)
-                        true
-                    }
-                    R.id.action_logout -> {
-                        auth.signOut()
-                        startActivity(Intent(this, MainActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        })
-                        true
-                    }
-                    else -> false
-                }
-            }
-            popup.show()
-        }
     }
+
+    private fun <T : View> findViewById(id: Int): T = requireView().findViewById(id)
 
     override fun onResume() {
         super.onResume()
@@ -151,30 +123,18 @@ class DiscoveryActivity : MorvoActivity() {
                 myGender = user.gender
                 myInterestedIn = user.interestedIn
                 adapter.updateMe(user)
-
-                if (user.imageUrls.isNotEmpty()) {
-                    val ivUserProfilePic = findViewById<ImageView>(R.id.ivUserProfilePic)
-                    Glide.with(this)
-                        .load(user.imageUrls[0])
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .skipMemoryCache(true)
-                        .circleCrop()
-                        .into(ivUserProfilePic)
-                }
-
-                // Triggers a list refresh now that blocked users are fetched
                 refreshRadarUI()
             }
         }
     }
 
     private fun checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             return
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 return
             }
@@ -189,7 +149,7 @@ class DiscoveryActivity : MorvoActivity() {
         val rangeIndex = findViewById<Slider>(R.id.rangeSlider).value.toInt()
         val rangeMeters = intArrayOf(50, 100, 200)[rangeIndex]
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
 
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             if (location != null) {
@@ -432,20 +392,21 @@ class DiscoveryActivity : MorvoActivity() {
                     )
                     db.collection("matches").document(matchId).set(matchData)
                 } else {
-                    Toast.makeText(this, getString(R.string.interest_sent, targetUser.firstName), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.interest_sent, targetUser.firstName), Toast.LENGTH_SHORT).show()
                 }
             }
     }
 
     private fun triggerLocalNotification(name: String) {
-        val intent = Intent(this, DiscoveryActivity::class.java).apply {
+        val intent = Intent(requireContext(), HomeActivity::class.java).apply {
+            putExtra(HomeActivity.EXTRA_TAB, R.id.nav_nearby)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         val pendingIntent: PendingIntent = PendingIntent.getActivity(
-            this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            requireContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val builder = NotificationCompat.Builder(this, channelId)
+        val builder = NotificationCompat.Builder(requireContext(), channelId)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("New Interest!")
             .setContentText("$name is interested in your profile right now!")
@@ -453,7 +414,7 @@ class DiscoveryActivity : MorvoActivity() {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
     }
 
@@ -461,13 +422,13 @@ class DiscoveryActivity : MorvoActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Radar Activity Alerts"
             val channel = NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_HIGH)
-            val notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager: NotificationManager = requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
     }
 
     private fun showMatchOverlay(partnerUid: String, matchId: String) {
-        val dialog = Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+        val dialog = Dialog(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen)
         dialog.setContentView(R.layout.match_overlay)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
@@ -493,7 +454,7 @@ class DiscoveryActivity : MorvoActivity() {
         }
 
         btnChat.setOnClickListener {
-            val intent = Intent(this, ChatActivity::class.java).apply { putExtra("MATCH_ID", matchId) }
+            val intent = Intent(requireContext(), ChatActivity::class.java).apply { putExtra("MATCH_ID", matchId) }
             startActivity(intent)
             dialog.dismiss()
         }
@@ -548,7 +509,7 @@ class DiscoveryActivity : MorvoActivity() {
     }
 
     private fun showProfileDetailsSheet(user: User) {
-        val bottomSheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val bottomSheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext())
         bottomSheetDialog.setContentView(R.layout.dialog_profile_details)
 
         // Bind UI Elements
@@ -569,7 +530,7 @@ class DiscoveryActivity : MorvoActivity() {
             if (user.occupation.isNotEmpty()) user.occupation else getString(R.string.not_specified)
         )
         tvGenderInfo?.text = getString(R.string.looking_for_line, user.gender, user.interestedIn)
-        tvHighlights?.text = ProfileCatalog.highlights(this, user)
+        tvHighlights?.text = ProfileCatalog.highlights(requireContext(), user)
 
         // Load all images into the ViewPager adapter
         if (user.imageUrls.isNotEmpty() && vpPhotos != null) {
@@ -592,7 +553,7 @@ class DiscoveryActivity : MorvoActivity() {
             )
 
             db.collection("reports").add(reportData).addOnSuccessListener {
-                Toast.makeText(this, R.string.profile_flagged, Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.profile_flagged, Toast.LENGTH_SHORT).show()
                 bottomSheetDialog.dismiss() // Close the sheet
             }
         }
@@ -614,7 +575,7 @@ class DiscoveryActivity : MorvoActivity() {
         }
 
         override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
-            Glide.with(this@DiscoveryActivity)
+            Glide.with(this@DiscoveryFragment)
                 .load(photos[position])
                 .centerCrop()
                 .placeholder(android.R.drawable.ic_menu_gallery)
