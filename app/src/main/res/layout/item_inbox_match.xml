@@ -38,13 +38,13 @@
             android:layout_height="wrap_content"
             android:textSize="13sp"
             android:textColor="#FF4081"
-            android:text="Chat closing soon..." />
+            android:text="@string/inbox_classic" />
     </LinearLayout>
 
     <Button
         android:id="@+id/btnOpenChat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="CHAT"
+        android:text="@string/open_chat"
         android:backgroundTint="#FF4081" />
 </LinearLayout>

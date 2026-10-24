@@ -13,17 +13,17 @@ import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.slider.Slider
@@ -33,7 +33,7 @@ import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
-class DiscoveryActivity : AppCompatActivity() {
+class DiscoveryFragment : Fragment() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val db = FirebaseFirestore.getInstance()
@@ -54,13 +54,11 @@ class DiscoveryActivity : AppCompatActivity() {
 
     private val channelId = "venue_date_radar"
     private val appSessionStartTime = System.currentTimeMillis()
-    private val notifiedCompatibleUsers = mutableSetOf<String>()
 
-    private var myHobbies = listOf<String>()
+    private var myProfile = User()
     private var myBlockedUsers = listOf<String>()
     private var myGender = ""
     private var myInterestedIn = ""
-    private var isCompatibilityModeActive = false
 
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) checkLocationPermission() else findViewById<SwitchMaterial>(R.id.switchAmHere).isChecked = false
@@ -70,131 +68,73 @@ class DiscoveryActivity : AppCompatActivity() {
         startLiveStatus()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_discovery)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        return inflater.inflate(R.layout.activity_discovery, container, false)
+    }
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
         createNotificationChannel()
 
         adapter = NearbyAdapter(
             users = emptyList(),
-            myHobbies = myHobbies,
+            me = myProfile,
             onProfileClick = { selectedUser -> showProfileDetailsSheet(selectedUser) },
             onIntentClick = { selectedUser -> sendInterest(selectedUser) }
         )
         val rv = findViewById<RecyclerView>(R.id.rvNearby)
-        rv.layoutManager = LinearLayoutManager(this)
+        rv.layoutManager = LinearLayoutManager(requireContext())
         rv.adapter = adapter
 
         val slider = findViewById<Slider>(R.id.rangeSlider)
         val tvRange = findViewById<TextView>(R.id.tvRangeLabel)
 
-        // Map slider positions (0, 1, 2) to exact distances (50, 100, 200)
         val rangeOptions = intArrayOf(50, 100, 200)
 
-        slider.addOnChangeListener { _, value, _ ->
-            val selectedMeters = rangeOptions[value.toInt()]
-            tvRange.text = "Search Range: ${selectedMeters}m"
+        fun showRange(value: Float) {
+            tvRange.text = getString(R.string.search_range, rangeOptions[value.toInt()])
         }
+        showRange(slider.value)
+        slider.addOnChangeListener { _, value, _ -> showRange(value) }
 
         findViewById<SwitchMaterial>(R.id.switchAmHere).setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) checkLocationPermission() else stopLiveStatus()
         }
 
-        val switchComp = findViewById<SwitchMaterial>(R.id.switchCompatibilityMode)
-        switchComp.setOnCheckedChangeListener { _, isChecked ->
-            isCompatibilityModeActive = isChecked
-            auth.currentUser?.uid?.let { uid ->
-                db.collection("users").document(uid).update("isCompatibilityModeActive", isChecked)
-            }
-            refreshRadarUI()
-        }
-
-        findViewById<ImageButton>(R.id.btnInbox).setOnClickListener {
-            startActivity(Intent(this, MatchesInboxActivity::class.java))
-        }
-
-        // Start real-time environment listeners
         listenForMatches()
         listenForTaps()
         listenForGlobalMessages()
-
-        val btnProfileMenu = findViewById<View>(R.id.btnProfileMenu)
-        btnProfileMenu.setOnClickListener { view ->
-            val popup = PopupMenu(this, view)
-            popup.menuInflater.inflate(R.menu.profile_menu, popup.menu)
-            popup.setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    R.id.action_profile -> {
-                        val intent = Intent(this, ProfileSetupActivity::class.java)
-                        intent.putExtra("EDIT_MODE", true)
-                        startActivity(intent)
-                        true
-                    }
-                    R.id.action_logout -> {
-                        auth.signOut()
-                        startActivity(Intent(this, MainActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        })
-                        true
-                    }
-                    else -> false
-                }
-            }
-            popup.show()
-        }
     }
+
+    private fun <T : View> findViewById(id: Int): T = requireView().findViewById(id)
 
     override fun onResume() {
         super.onResume()
-        checkUserHobbiesEligibility()
+        loadMyProfile()
     }
 
-    private fun checkUserHobbiesEligibility() {
+    private fun loadMyProfile() {
         val myUid = auth.currentUser?.uid ?: return
         db.collection("users").document(myUid).get().addOnSuccessListener { doc ->
-            val user = doc.toObject(User::class.java)
+            val user = doc.toObject(User::class.java)?.withProfileAnswers(doc)
             if (user != null) {
-                myHobbies = user.hobbies
+                myProfile = user
                 myBlockedUsers = user.blockedUsers
                 myGender = user.gender
                 myInterestedIn = user.interestedIn
-                val switchComp = findViewById<SwitchMaterial>(R.id.switchCompatibilityMode)
-
-                if (myHobbies.size >= 10) {
-                    switchComp.isEnabled = true
-                    switchComp.text = "Compatibility Matching Mode (Active)"
-                } else {
-                    switchComp.isEnabled = false
-                    switchComp.isChecked = false
-                    switchComp.text = "Compatibility Mode Locked (${myHobbies.size}/10 Hobbies Picked)"
-                }
-                adapter.updateMyHobbies(myHobbies)
-
-                if (user.imageUrls.isNotEmpty()) {
-                    val ivUserProfilePic = findViewById<ImageView>(R.id.ivUserProfilePic)
-                    Glide.with(this)
-                        .load(user.imageUrls[0])
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .skipMemoryCache(true)
-                        .circleCrop()
-                        .into(ivUserProfilePic)
-                }
-
-                // Triggers a list refresh now that blocked users are fetched
+                adapter.updateMe(user)
                 refreshRadarUI()
             }
         }
     }
 
     private fun checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             return
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 return
             }
@@ -209,7 +149,7 @@ class DiscoveryActivity : AppCompatActivity() {
         val rangeIndex = findViewById<Slider>(R.id.rangeSlider).value.toInt()
         val rangeMeters = intArrayOf(50, 100, 200)[rangeIndex]
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
 
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             if (location != null) {
@@ -217,8 +157,7 @@ class DiscoveryActivity : AppCompatActivity() {
                     "isAvailable" to true,
                     "lastLat" to fuzzLocation(location.latitude),
                     "lastLng" to fuzzLocation(location.longitude),
-                    "availableUntil" to System.currentTimeMillis() + (20 * 60 * 1000),
-                    "isCompatibilityModeActive" to isCompatibilityModeActive
+                    "availableUntil" to System.currentTimeMillis() + (20 * 60 * 1000)
                 )
                 db.collection("users").document(uid).update(updates).addOnSuccessListener {
                     listenForNearbyUsers(location.latitude, location.longitude, rangeMeters)
@@ -241,7 +180,7 @@ class DiscoveryActivity : AppCompatActivity() {
                 rawNearbyUsers.clear()
 
                 snapshots?.forEach { doc ->
-                    val user = doc.toObject(User::class.java)
+                    val user = doc.toObject(User::class.java)?.withProfileAnswers(doc)
 
                     // NEW: Make sure they aren't ourselves, AND their 20-minute timer is still strictly active!
                     if (user != null && user.uid != auth.currentUser?.uid && user.availableUntil > currentTime) {
@@ -401,18 +340,9 @@ class DiscoveryActivity : AppCompatActivity() {
             // HARD FILTER: Gender & Preference Match
             val isGenderMatch = isMutuallyInterested(myGender, myInterestedIn, user.gender, user.interestedIn)
 
-            // HARD FILTER: If mode is ON, hide anyone who isn't a Super Match
-            val passesCompatibility = if (isCompatibilityModeActive) {
-                val sharedCount = user.hobbies.intersect(myHobbies.toSet()).size
-                user.isCompatibilityModeActive && sharedCount >= 7
-            } else {
-                true
-            }
-
-            isClean && isGenderMatch && passesCompatibility
+            isClean && isGenderMatch
         }
 
-        // 2. Sort the list by priority ranking
         val sortedUsers = validUsers.sortedWith { user1, user2 ->
             val score1 = calculateSortScore(user1)
             val score2 = calculateSortScore(user2)
@@ -427,25 +357,9 @@ class DiscoveryActivity : AppCompatActivity() {
     // SORTING ALGORITHM
     private fun calculateSortScore(user: User): Int {
         // Priority 1: They tapped you (Requires your attention immediately)
-        if (inboundTaps.containsKey(user.uid)) return 4
-
-        // Priority 2: You tapped them (Keep them near top so you can see status)
-        if (outboundTaps.containsKey(user.uid)) return 3
-
-        // Priority 3: High Compatibility (Super Match)
-        if (isCompatibilityModeActive && user.isCompatibilityModeActive) {
-            val sharedCount = user.hobbies.intersect(myHobbies.toSet()).size
-            if (sharedCount >= 7) {
-                if (!notifiedCompatibleUsers.contains(user.uid)) {
-                    notifiedCompatibleUsers.add(user.uid)
-                    triggerLocalNotification("High Compatibility! ${user.firstName} is nearby with $sharedCount shared interests!")
-                }
-                return 2
-            }
-        }
-
-        // Priority 4: Standard user nearby
-        return 1
+        if (inboundTaps.containsKey(user.uid)) return 10_000
+        if (outboundTaps.containsKey(user.uid)) return 5_000
+        return CompatibilityCalculator.percent(myProfile, user)
     }
 
     private fun sendInterest(targetUser: User) {
@@ -473,24 +387,26 @@ class DiscoveryActivity : AppCompatActivity() {
                     val matchData = hashMapOf(
                         "users" to listOf(myUid, targetUser.uid),
                         "timestamp" to System.currentTimeMillis(),
-                        "expiresAt" to System.currentTimeMillis() + (20 * 60 * 1000)
+                        "expiresAt" to System.currentTimeMillis() + (20 * 60 * 1000),
+                        "type" to "proximity"
                     )
                     db.collection("matches").document(matchId).set(matchData)
                 } else {
-                    Toast.makeText(this, "Interest sent to ${targetUser.firstName}!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.interest_sent, targetUser.firstName), Toast.LENGTH_SHORT).show()
                 }
             }
     }
 
     private fun triggerLocalNotification(name: String) {
-        val intent = Intent(this, DiscoveryActivity::class.java).apply {
+        val intent = Intent(requireContext(), HomeActivity::class.java).apply {
+            putExtra(HomeActivity.EXTRA_TAB, R.id.nav_nearby)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         val pendingIntent: PendingIntent = PendingIntent.getActivity(
-            this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            requireContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val builder = NotificationCompat.Builder(this, channelId)
+        val builder = NotificationCompat.Builder(requireContext(), channelId)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("New Interest!")
             .setContentText("$name is interested in your profile right now!")
@@ -498,7 +414,7 @@ class DiscoveryActivity : AppCompatActivity() {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
     }
 
@@ -506,13 +422,13 @@ class DiscoveryActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Radar Activity Alerts"
             val channel = NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_HIGH)
-            val notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager: NotificationManager = requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
     }
 
     private fun showMatchOverlay(partnerUid: String, matchId: String) {
-        val dialog = Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+        val dialog = Dialog(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen)
         dialog.setContentView(R.layout.match_overlay)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
@@ -538,7 +454,7 @@ class DiscoveryActivity : AppCompatActivity() {
         }
 
         btnChat.setOnClickListener {
-            val intent = Intent(this, ChatActivity::class.java).apply { putExtra("MATCH_ID", matchId) }
+            val intent = Intent(requireContext(), ChatActivity::class.java).apply { putExtra("MATCH_ID", matchId) }
             startActivity(intent)
             dialog.dismiss()
         }
@@ -593,7 +509,7 @@ class DiscoveryActivity : AppCompatActivity() {
     }
 
     private fun showProfileDetailsSheet(user: User) {
-        val bottomSheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val bottomSheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext())
         bottomSheetDialog.setContentView(R.layout.dialog_profile_details)
 
         // Bind UI Elements
@@ -602,20 +518,19 @@ class DiscoveryActivity : AppCompatActivity() {
         val tvCity = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetCity)
         val tvOccupation = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetOccupation)
         val tvGenderInfo = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetGenderInfo)
-        val tvHobbies = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetHobbies)
-        val btnFlagProfile = bottomSheetDialog.findViewById<Button>(R.id.btnFlagProfile) // NEW
+        val tvHighlights = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetHobbies)
+        val tvPercent = bottomSheetDialog.findViewById<TextView>(R.id.tvSheetPercent)
+        val btnFlagProfile = bottomSheetDialog.findViewById<Button>(R.id.btnFlagProfile)
 
-        // Populate Data
         tvNameAge?.text = "${user.firstName}, ${user.age}"
-        tvCity?.text = if (user.city.isNotEmpty()) user.city else "Location hidden"
-        tvOccupation?.text = "💼 ${if (user.occupation.isNotEmpty()) user.occupation else "Not specified"}"
-        tvGenderInfo?.text = "👤 ${user.gender} | Looking for: ${user.interestedIn}"
-
-        tvHobbies?.text = if (user.hobbies.isNotEmpty()) {
-            user.hobbies.joinToString(separator = " • ")
-        } else {
-            "No interests added."
-        }
+        tvCity?.text = if (user.city.isNotEmpty()) user.city else getString(R.string.location_hidden)
+        tvPercent?.text = getString(R.string.compatibility_percent, CompatibilityCalculator.percent(myProfile, user))
+        tvOccupation?.text = getString(
+            R.string.occupation_line,
+            if (user.occupation.isNotEmpty()) user.occupation else getString(R.string.not_specified)
+        )
+        tvGenderInfo?.text = getString(R.string.looking_for_line, user.gender, user.interestedIn)
+        tvHighlights?.text = ProfileCatalog.highlights(requireContext(), user)
 
         // Load all images into the ViewPager adapter
         if (user.imageUrls.isNotEmpty() && vpPhotos != null) {
@@ -638,7 +553,7 @@ class DiscoveryActivity : AppCompatActivity() {
             )
 
             db.collection("reports").add(reportData).addOnSuccessListener {
-                Toast.makeText(this, "Profile flagged for review. Thank you.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.profile_flagged, Toast.LENGTH_SHORT).show()
                 bottomSheetDialog.dismiss() // Close the sheet
             }
         }
@@ -660,7 +575,7 @@ class DiscoveryActivity : AppCompatActivity() {
         }
 
         override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
-            Glide.with(this@DiscoveryActivity)
+            Glide.with(this@DiscoveryFragment)
                 .load(photos[position])
                 .centerCrop()
                 .placeholder(android.R.drawable.ic_menu_gallery)
@@ -670,22 +585,7 @@ class DiscoveryActivity : AppCompatActivity() {
         override fun getItemCount() = photos.size
     }
 
-    // GENDER & PREFERENCE MATCHER
     private fun isMutuallyInterested(myGender: String, myPreference: String, theirGender: String, theirPreference: String): Boolean {
-
-        // Helper function to normalize "Men/Male" and "Women/Female" for easy comparison
-        fun matches(preference: String, gender: String): Boolean {
-            if (preference.equals("Everyone", ignoreCase = true)) return true
-            if (preference.equals("Men", ignoreCase = true) && gender.equals("Male", ignoreCase = true)) return true
-            if (preference.equals("Women", ignoreCase = true) && gender.equals("Female", ignoreCase = true)) return true
-
-            // Fallback just in case the database strictly uses matching words
-            return preference.equals(gender, ignoreCase = true)
-        }
-
-        val iLikeThem = matches(myPreference, theirGender)
-        val theyLikeMe = matches(theirPreference, myGender)
-
-        return iLikeThem && theyLikeMe
+        return InterestFilter.matches(myGender, myPreference, theirGender, theirPreference)
     }
 }

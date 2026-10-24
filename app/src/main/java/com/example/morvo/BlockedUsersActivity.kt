@@ -1,17 +1,16 @@
 package com.example.morvo
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageButton
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import android.util.Log
 
-class BlockedUsersActivity : AppCompatActivity() {
+class BlockedUsersActivity : MorvoActivity() {
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
@@ -43,7 +42,7 @@ class BlockedUsersActivity : AppCompatActivity() {
             val blockedUids = user?.blockedUsers ?: emptyList()
 
             if (blockedUids.isEmpty()) {
-                Toast.makeText(this, "You have no blocked users.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.no_blocked, Toast.LENGTH_SHORT).show()
                 return@addOnSuccessListener
             }
 
@@ -62,12 +61,12 @@ class BlockedUsersActivity : AppCompatActivity() {
                     }
                 }.addOnFailureListener { e ->
                     Log.e("BlockedUsers", "Error fetching blocked users list", e)
-                    Toast.makeText(this, "Network error: Could not load blocked users.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.blocked_load_error, Toast.LENGTH_SHORT).show()
                 }
             }
         }.addOnFailureListener { e ->
             Log.e("BlockedUsers", "Error fetching my profile", e)
-            Toast.makeText(this, "Network error: Could not load profile.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.profile_load_error, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -79,10 +78,10 @@ class BlockedUsersActivity : AppCompatActivity() {
             .update("blockedUsers", FieldValue.arrayRemove(unblockUid))
             .addOnSuccessListener {
                 adapter.removeUser(position)
-                Toast.makeText(this, "User unblocked", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.user_unblocked, Toast.LENGTH_SHORT).show()
             }.addOnFailureListener { e ->
                 Log.e("BlockedUsers", "Error unblocking user", e)
-                Toast.makeText(this, "Failed to unblock user. Try again.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.unblock_failed, Toast.LENGTH_SHORT).show()
             }
     }
 }

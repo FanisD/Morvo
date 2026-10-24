@@ -8,7 +8,6 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -22,7 +21,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : MorvoActivity() {
 
     private lateinit var auth: FirebaseAuth
     private val db = FirebaseFirestore.getInstance()
@@ -35,7 +34,7 @@ class MainActivity : AppCompatActivity() {
                 val account = task.getResult(ApiException::class.java)!!
                 firebaseAuthWithGoogle(account.idToken!!)
             } catch (e: ApiException) {
-                Toast.makeText(this, "Google Sign-In Failed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.google_sign_in_failed, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -83,15 +82,15 @@ class MainActivity : AppCompatActivity() {
                         if (user?.isEmailVerified == true) {
                             checkProfileStatus(user.uid)
                         } else {
-                            Toast.makeText(this, "Please verify your email first", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, R.string.verify_email_first, Toast.LENGTH_SHORT).show()
                             auth.signOut()
                         }
                     } else {
-                        Toast.makeText(this, "Login Failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.login_failed, task.exception?.message ?: ""), Toast.LENGTH_SHORT).show()
                     }
                 }
             } else {
-                Toast.makeText(this, "Enter email and password", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.enter_email_password, Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -104,14 +103,14 @@ class MainActivity : AppCompatActivity() {
                 auth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         auth.currentUser?.sendEmailVerification()
-                        Toast.makeText(this, "Verification email sent!", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, R.string.verification_email_sent, Toast.LENGTH_LONG).show()
                         auth.signOut()
                     } else {
-                        Toast.makeText(this, "Error: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.auth_error, task.exception?.message ?: ""), Toast.LENGTH_SHORT).show()
                     }
                 }
             } else {
-                Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.password_too_short, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -145,14 +144,14 @@ class MainActivity : AppCompatActivity() {
         db.collection("banned_emails").document(userEmail).get().addOnSuccessListener { banDoc ->
             if (banDoc.exists()) {
                 // BOOT THEM OUT
-                Toast.makeText(this, "This account has been permanently banned.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, R.string.account_banned, Toast.LENGTH_LONG).show()
                 auth.signOut()
                 findViewById<View>(R.id.layoutLoading).visibility = View.GONE
             } else {
                 // 2. Normal profile check if they are not banned
                 db.collection("users").document(uid).get().addOnSuccessListener { doc ->
                     if (doc.exists() && !doc.getString("firstName").isNullOrEmpty()) {
-                        startActivity(Intent(this, DiscoveryActivity::class.java))
+                        startActivity(Intent(this, HomeActivity::class.java))
                         finish()
                     } else {
                         startActivity(Intent(this, ProfileSetupActivity::class.java))
@@ -160,7 +159,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }.addOnFailureListener {
                     findViewById<View>(R.id.layoutLoading).visibility = View.GONE
-                    Toast.makeText(this, "Network Error: Could not load profile", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.network_profile_error, Toast.LENGTH_SHORT).show()
                 }
             }
         }

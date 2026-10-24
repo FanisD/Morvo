@@ -25,7 +25,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="VenueDate"
+                android:text="@string/brand_title"
                 android:textColor="@color/brand_primary"
                 android:textSize="42sp"
                 android:textStyle="bold"
@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="48dp"
-                android:text="Find your spark nearby."
+                android:text="@string/tagline"
                 android:textColor="@color/text_secondary"
                 android:textSize="16sp" />
 
@@ -45,7 +45,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Email Address"
+                android:hint="@string/hint_email"
                 app:boxBackgroundColor="@color/surface_card"
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
@@ -66,7 +66,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="32dp"
-                android:hint="Password"
+                android:hint="@string/hint_password"
                 app:boxBackgroundColor="@color/surface_card"
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
@@ -88,7 +88,7 @@
                 android:id="@+id/btnLogin"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Sign In"
+                android:text="@string/sign_in"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
@@ -103,7 +103,7 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="24dp">
                 <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" android:background="#E0E0E0"/>
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" OR " android:textColor="@color/text_secondary" android:paddingHorizontal="8dp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/or_divider" android:textColor="@color/text_secondary" android:paddingHorizontal="8dp"/>
                 <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" android:background="#E0E0E0"/>
             </LinearLayout>
 
@@ -124,7 +124,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:padding="12dp"
-                android:text="New here? Create Account"
+                android:text="@string/create_account"
                 android:textColor="@color/brand_primary"
                 android:textSize="15sp"
                 android:textStyle="bold"
@@ -152,7 +152,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="VenueDate"
+            android:text="@string/brand_title"
             android:textColor="@color/brand_primary"
             android:textSize="42sp"
             android:textStyle="bold"

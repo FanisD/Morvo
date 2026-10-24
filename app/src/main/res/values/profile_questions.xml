@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wizard_step">Step %1$d of %2$d</string>
+    <string name="wizard_next">Next</string>
+    <string name="wizard_back">Back</string>
+    <string name="answer_required">Answer every question on this step.</string>
+    <string name="hint_pick_5">Choose up to 5</string>
+    <string name="hint_pick_7">Choose up to 7</string>
+    <string name="pick_limit">You can choose up to %1$d.</string>
+    <string name="profile_highlights">About them</string>
+    <string name="highlight_kids">Kids: %1$s</string>
+    <string name="highlights_empty">No questionnaire answers yet.</string>
+    <string name="flag_profile">Flag inappropriate profile or photo</string>
+
+    <string name="section_relationship">What kind of relationship</string>
+    <string name="section_style">How you are in a relationship</string>
+    <string name="section_pets">Pets</string>
+    <string name="section_family">Kids and family</string>
+    <string name="section_personality">Personality and values</string>
+    <string name="section_therapy">Therapy and growth</string>
+    <string name="section_money">Money</string>
+    <string name="section_going_out">Going out</string>
+    <string name="section_fitness">Fitness</string>
+    <string name="section_free_time">Free time</string>
+
+    <string name="q_relationship_type">What kind of relationship are you looking for?</string>
+    <string name="opt_rel_serious">A serious relationship</string>
+    <string name="opt_rel_long_term">A long-term relationship with a view to marriage</string>
+    <string name="opt_rel_marriage">Marriage</string>
+    <string name="opt_rel_casual">Something more casual</string>
+    <string name="opt_rel_dating">Dating with no particular expectation</string>
+    <string name="opt_rel_unsure">I\'m not sure yet</string>
+
+    <string name="q_relationship_pace">How soon do you want a relationship to develop?</string>
+    <string name="opt_pace_slow">I want to get to know someone slowly</string>
+    <string name="opt_pace_soon">I want a relationship fairly soon</string>
+    <string name="opt_pace_family">I want to start a family in the coming years</string>
+
+    <string name="q_see_partner">How often do you want to see your partner?</string>
+    <string name="opt_see_daily">Every day</string>
+    <string name="opt_see_3_5">3–5 times a week</string>
+    <string name="opt_see_1_2">1–2 times a week</string>
+    <string name="opt_see_depends">It depends</string>
+
+    <string name="q_daily_communication">How important is communication during the day?</string>
+    <string name="opt_comm_high">Very</string>
+    <string name="opt_comm_medium">Moderate</string>
+    <string name="opt_comm_low">Not particularly</string>
+
+    <string name="q_conflict">When there is a disagreement:</string>
+    <string name="opt_conflict_now">I want to resolve it immediately</string>
+    <string name="opt_conflict_later">I prefer to talk about it calmly later</string>
+
+    <string name="q_has_pet">Do you have a pet?</string>
+    <string name="q_wants_pet">Do you want a pet in the future?</string>
+    <string name="q_date_pet">Would you date someone who has a pet?</string>
+    <string name="opt_yes">Yes</string>
+    <string name="opt_no">No</string>
+    <string name="opt_maybe">Maybe</string>
+
+    <string name="q_wants_kids">Do you want kids?</string>
+    <string name="opt_kids_already">I already have kids</string>
+    <string name="q_kids_timing">When would you want kids?</string>
+    <string name="opt_kids_soon">Soon</string>
+    <string name="opt_kids_2_5">In 2–5 years</string>
+    <string name="opt_kids_later">Later</string>
+    <string name="opt_undecided">I haven\'t decided</string>
+
+    <string name="q_marriage">Marriage?</string>
+    <string name="opt_marriage_important">Yes, it is important to me</string>
+    <string name="opt_marriage_nice">I would like it, but it is not essential</string>
+    <string name="opt_marriage_no">I\'m not interested</string>
+
+    <string name="q_family_importance">How important is starting a family to you?</string>
+    <string name="opt_family_very">Very</string>
+    <string name="opt_family_quite">Quite</string>
+    <string name="opt_family_little">A little</string>
+    <string name="opt_family_none">Not at all</string>
+
+    <string name="q_personality">You are more…</string>
+    <string name="slider_introvert">Introvert</string>
+    <string name="slider_extrovert">Extrovert</string>
+    <string name="slider_spontaneous">Spontaneous</string>
+    <string name="slider_planner">Planner</string>
+    <string name="slider_minimalist">Minimalist</string>
+    <string name="slider_materialistic">Materialistic</string>
+    <string name="slider_ambitious">Ambitious</string>
+    <string name="slider_laidback">Laid-back</string>
+    <string name="slider_traditional">Traditional</string>
+    <string name="slider_modern">Modern</string>
+
+    <string name="q_values">What matters to you in a relationship?</string>
+    <string name="opt_value_trust">Trust</string>
+    <string name="opt_value_communication">Communication</string>
+    <string name="opt_value_humor">Humor</string>
+    <string name="opt_value_respect">Respect</string>
+    <string name="opt_value_sexual">Sexual compatibility</string>
+    <string name="opt_value_money">Financial stability</string>
+    <string name="opt_value_shared">Shared values</string>
+    <string name="opt_value_adventure">Adventure</string>
+    <string name="opt_value_family">Family</string>
+    <string name="opt_value_space">Personal space</string>
+    <string name="opt_value_ambition">Ambition</string>
+    <string name="opt_value_companionship">Companionship</string>
+
+    <string name="q_therapy">Do you do, or have you done, therapy?</string>
+    <string name="opt_therapy_current">Yes, I\'m in therapy now</string>
+    <string name="opt_therapy_past">Yes, I have in the past</string>
+    <string name="opt_therapy_open">No, but I would be open to it</string>
+    <string name="opt_therapy_no">No, and I\'m not interested</string>
+
+    <string name="q_money_have">When you have money, what do you prefer?</string>
+    <string name="opt_money_save">Saving</string>
+    <string name="opt_money_invest">Investing</string>
+    <string name="opt_money_travel">Traveling</string>
+    <string name="opt_money_buy">Buying things</string>
+    <string name="opt_money_experiences">Enjoying experiences</string>
+
+    <string name="q_money_relationship">How do you see money in a relationship?</string>
+    <string name="opt_money_split">Split evenly</string>
+    <string name="opt_money_income">According to income</string>
+    <string name="opt_money_shared">Shared finances</string>
+    <string name="opt_money_depends">Every couple is different</string>
+
+    <string name="q_money_self">How would you describe yourself with money?</string>
+    <string name="opt_self_saver">A strong saver</string>
+    <string name="opt_self_careful">Careful</string>
+    <string name="opt_self_balanced">Balanced</string>
+    <string name="opt_self_enjoy">I like to enjoy my money</string>
+    <string name="opt_self_spontaneous">Spontaneous with money</string>
+
+    <string name="q_going_out_frequency">How often do you like to go out?</string>
+    <string name="opt_out_often">Very often</string>
+    <string name="opt_out_2_3">2–3 times a week</string>
+    <string name="opt_out_once">About once a week</string>
+    <string name="opt_out_rarely">Rarely</string>
+
+    <string name="q_going_out_activities">What do you like to do when you go out?</string>
+    <string name="opt_out_food">Food</string>
+    <string name="opt_out_bars">Bars</string>
+    <string name="opt_out_bouzoukia">Bouzoukia</string>
+    <string name="opt_out_clubs">Clubs</string>
+    <string name="opt_out_coffee">Coffee</string>
+    <string name="opt_out_live">Live music</string>
+    <string name="opt_out_theater">Theater</string>
+    <string name="opt_out_cinema">Cinema</string>
+    <string name="opt_out_concerts">Concerts</string>
+    <string name="opt_out_walks">Walks in the city</string>
+
+    <string name="q_fitness">How important is exercise in your life?</string>
+    <string name="opt_fit_none">Not at all</string>
+    <string name="opt_fit_little">A little</string>
+    <string name="opt_fit_moderate">Moderate</string>
+    <string name="opt_fit_high">Very</string>
+    <string name="opt_fit_central">It is a big part of my life</string>
+
+    <string name="q_free_time">What do you like to do in your free time?</string>
+    <string name="opt_free_travel">Travel</string>
+    <string name="opt_free_beach">Beach</string>
+    <string name="opt_free_hiking">Hiking</string>
+    <string name="opt_free_gym">Gym</string>
+    <string name="opt_free_cooking">Cooking</string>
+    <string name="opt_free_gaming">Gaming</string>
+    <string name="opt_free_books">Books</string>
+    <string name="opt_free_museums">Museums</string>
+    <string name="opt_free_art">Art</string>
+    <string name="opt_free_photo">Photography</string>
+    <string name="opt_free_dance">Dance</string>
+    <string name="opt_free_series">Series</string>
+    <string name="opt_free_cinema">Cinema</string>
+    <string name="opt_free_music">Music</string>
+</resources>

@@ -28,10 +28,18 @@
         android:id="@+id/tvSheetCity"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="City"
+        android:layout_marginTop="4dp"
         android:textColor="@color/text_secondary"
-        android:textSize="16sp"
-        android:layout_marginTop="4dp" />
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/tvSheetPercent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/brand_primary"
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
     <View
         android:layout_width="match_parent"
@@ -70,7 +78,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Interests"
+        android:text="@string/profile_highlights"
         android:textColor="@color/text_primary"
         android:textSize="16sp"
         android:textStyle="bold"
@@ -91,7 +99,7 @@
         android:id="@+id/btnFlagProfile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="🚩 Flag Inappropriate Profile or Photo"
+        android:text="@string/flag_profile"
         android:textColor="#D32F2F"
         style="?attr/borderlessButtonStyle"
         android:layout_marginTop="8dp" />
